@@ -90,7 +90,7 @@ class _AddItemsState extends State<AddItems> {
               print(itemController.text);
               print(priceController.text);
               print(descController.text);
-              for (var i = 0; i < mediaList.length; i++) {
+              for (var i = 0; i < mediaList.length; i++) { 
                 print(mediaList[i]);
               }
               print(provx.isVisibility ? "Public" : "Private");
