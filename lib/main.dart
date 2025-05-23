@@ -5,6 +5,7 @@ import 'package:MAZO/Routes/App_Router.dart';
 import 'package:provider/provider.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(MyApp());
 }
 

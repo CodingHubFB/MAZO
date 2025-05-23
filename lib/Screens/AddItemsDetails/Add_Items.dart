@@ -6,8 +6,10 @@ import 'package:MAZO/Widgets/Input_Widget.dart';
 import 'package:MAZO/provider/App_Provider.dart';
 import 'package:better_player_plus/better_player_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AddItems extends StatefulWidget {
   const AddItems({super.key});
@@ -86,17 +88,23 @@ class _AddItemsState extends State<AddItems> {
         centerTitle: true,
         actions: [
           IconButton(
-            onPressed: () {
-              print(itemController.text);
-              print(priceController.text);
-              print(descController.text);
-              for (var i = 0; i < mediaList.length; i++) { 
-                print(mediaList[i]);
-              }
-              print(provx.isVisibility ? "Public" : "Private");
-              print(provx.isComments ? "On" : "Off");
-              print(provx.itemId);
-              // AppUtils().uploadItems(pathFile, itemId);
+            onPressed: () async {
+              SharedPreferences prefx = await SharedPreferences.getInstance();
+              String visibility = provx.isVisibility ? "Public" : "Private";
+              String comments = provx.isComments ? "On" : "Off";
+              final filesToUpload = List<String>.from(mediaList);
+              final itemId = provx.itemId;
+              context.go('/home');
+              Future.delayed(Duration(milliseconds: 500), () async {
+                mediaList.clear();
+                AppUtils.makeRequests(
+                  "query",
+                  "UPDATE Items SET name = '${itemController.text}', price = '${priceController.text}', description = '${descController.text}', visibility = '$visibility', comments = '$comments',uid = '${prefx.getString("UID")}', created_at = '${DateTime.now()}' WHERE id = '$itemId'",
+                );
+                for (var file in filesToUpload) {
+                  await AppUtils().uploadItems(file, itemId);
+                }
+              });
             },
             icon: Icon(Iconsax.send_1),
           ),

@@ -7,9 +7,28 @@ class AppProvider extends ChangeNotifier {
   bool isComments = false;
   int videoDuration = 15;
   int itemId = 0;
+  List putItems = [];
+  String commentBool = "Off";
+  String currentUser = "";
+
+  void setCurrentUsers(currentUsers) {
+    currentUser = currentUsers;
+    notifyListeners();
+  }
+
+
+  void setPutItems(itemSet) {
+    putItems = itemSet;
+    notifyListeners();
+  }
 
   void setViduration(viduration) {
     videoDuration = viduration;
+    notifyListeners();
+  }
+
+  void setCommentSwitch(commentSwitch) {
+    commentBool = commentSwitch;
     notifyListeners();
   }
 

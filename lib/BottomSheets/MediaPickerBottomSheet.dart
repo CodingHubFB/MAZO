@@ -162,6 +162,7 @@ class MediaPickerBottomSheet {
                       ).addMedia(value.path);
 
                       if (navigate) {
+                        setItemData();
                         MyApp.navigatorKey.currentContext!.go('/addDetails');
                       }
                     }
@@ -178,13 +179,13 @@ class MediaPickerBottomSheet {
 
                   openGallery(context, isVideo).then((value) async {
                     if (value != null) {
-                      setItemData();
                       Provider.of<AppProvider>(
                         MyApp.navigatorKey.currentContext!,
                         listen: false,
                       ).addMedia(value.path);
 
                       if (navigate) {
+                        setItemData();
                         MyApp.navigatorKey.currentContext!.go('/addDetails');
                       }
                     }
@@ -219,4 +220,3 @@ setItemData() async {
     print("في مشكلة حصلت: ${response['error']}");
   }
 }
-

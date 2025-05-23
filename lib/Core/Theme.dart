@@ -16,35 +16,35 @@ class AppTheme {
     appBarTheme: AppBarTheme(
       backgroundColor: primaryColor,
       elevation: 0,
-      titleTextStyle: GoogleFonts.poppins(
+      titleTextStyle: GoogleFonts.tajawal(
         fontSize: 20,
         fontWeight: FontWeight.bold,
         color: Colors.white,
       ),
     ),
-    fontFamily: GoogleFonts.poppins().fontFamily,
+    fontFamily: GoogleFonts.tajawal().fontFamily,
     textTheme: TextTheme(
-      displayLarge: GoogleFonts.poppins(
+      displayLarge: GoogleFonts.tajawal(
         fontSize: 42,
         fontWeight: FontWeight.bold,
         color: Colors.black,
       ),
-      displayMedium: GoogleFonts.poppins(
+      displayMedium: GoogleFonts.tajawal(
         fontSize: 28,
         fontWeight: FontWeight.w600,
         color: Colors.black,
       ),
-      bodyLarge: GoogleFonts.poppins(
+      bodyLarge: GoogleFonts.tajawal(
         fontSize: 16,
         fontWeight: FontWeight.normal,
         color: Colors.black,
       ),
-      bodyMedium: GoogleFonts.poppins(
+      bodyMedium: GoogleFonts.tajawal(
         fontSize: 14,
         fontWeight: FontWeight.normal,
         color: Colors.black54,
       ),
-      labelLarge: GoogleFonts.poppins(
+      labelLarge: GoogleFonts.tajawal(
         fontSize: 16,
         fontWeight: FontWeight.bold,
         color: Colors.white,
@@ -57,7 +57,7 @@ class AppTheme {
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         backgroundColor: primaryColor,
-        textStyle: GoogleFonts.poppins(
+        textStyle: GoogleFonts.tajawal(
           fontSize: 16,
           fontWeight: FontWeight.bold,
           color: Colors.white,
@@ -74,35 +74,35 @@ class AppTheme {
     appBarTheme: AppBarTheme(
       backgroundColor: darkBackgroundColor,
       elevation: 0,
-      titleTextStyle: GoogleFonts.poppins(
+      titleTextStyle: GoogleFonts.tajawal(
         fontSize: 20,
         fontWeight: FontWeight.bold,
         color: Colors.white,
       ),
     ),
-    fontFamily: GoogleFonts.poppins().fontFamily,
+    fontFamily: GoogleFonts.tajawal().fontFamily,
     textTheme: TextTheme(
-      displayLarge: GoogleFonts.poppins(
+      displayLarge: GoogleFonts.tajawal(
         fontSize: 32,
         fontWeight: FontWeight.bold,
         color: Colors.white,
       ),
-      displayMedium: GoogleFonts.poppins(
+      displayMedium: GoogleFonts.tajawal(
         fontSize: 28,
         fontWeight: FontWeight.w600,
         color: Colors.white,
       ),
-      bodyLarge: GoogleFonts.poppins(
+      bodyLarge: GoogleFonts.tajawal(
         fontSize: 16,
         fontWeight: FontWeight.normal,
         color: Colors.white,
       ),
-      bodyMedium: GoogleFonts.poppins(
+      bodyMedium: GoogleFonts.tajawal(
         fontSize: 14,
         fontWeight: FontWeight.normal,
         color: Colors.white70,
       ),
-      labelLarge: GoogleFonts.poppins(
+      labelLarge: GoogleFonts.tajawal(
         fontSize: 16,
         fontWeight: FontWeight.bold,
         color: Colors.white,
@@ -111,7 +111,7 @@ class AppTheme {
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         backgroundColor: primaryColor,
-        textStyle: GoogleFonts.poppins(
+        textStyle: GoogleFonts.tajawal(
           fontSize: 16,
           fontWeight: FontWeight.bold,
           color: Colors.white,

@@ -2,6 +2,7 @@ import 'package:MAZO/Screens/AddItemsDetails/Add_Items.dart';
 import 'package:MAZO/Screens/Auth/CompleteProfile.dart';
 import 'package:MAZO/Screens/Auth/LoginScreen.dart';
 import 'package:MAZO/Screens/Auth/OTPScreen.dart';
+import 'package:MAZO/Screens/SearchScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:MAZO/Screens/Home/Home_Screen.dart';
@@ -15,6 +16,7 @@ final GoRouter router = GoRouter(
     GoRoute(path: '/splash', builder: (context, state) => const SplashScreen()),
     GoRoute(path: '/home', builder: (context, state) => HomeScreen()),
     GoRoute(path: '/login', builder: (context, state) => LoginScreen()),
+    GoRoute(path: '/search', builder: (context, state) => SearchScreen()),
     GoRoute(
       path: '/otp',
       builder: (context, state) {

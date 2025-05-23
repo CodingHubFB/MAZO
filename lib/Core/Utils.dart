@@ -29,6 +29,14 @@ class AppUtils {
     return json.decode(response.data);
   }
 
+  static makeRequestsViews(type, query) async {
+    final encodedQuery = Uri.encodeComponent(query); // <-- ترميز الكويري
+    final response = await Dio().get(
+      "https://pos7d.site/MAZO/Requests.php?$type=$encodedQuery&k=${DateTime.now().millisecondsSinceEpoch}",
+    );
+    return json.decode(response.data);
+  }
+
   Future uploadUsers(pathFile, uid) async {
     final formData = FormData.fromMap({
       "file": await MultipartFile.fromFile(
@@ -49,15 +57,23 @@ class AppUtils {
   }
 
   Future uploadItems(pathFile, itemId) async {
-      final formData = FormData.fromMap({
-        "file": await MultipartFile.fromFile(pathFile, filename: pathFile.split('/').last),
-        "itemId": itemId,
-        "k": DateTime.now().millisecondsSinceEpoch
-      });
-      final response = await Dio().post('https://pos7d.site/MAZO/Upload.php', data: formData, onSendProgress: (int sent, int total) {
-      });
-      if (response.statusCode == 200) {
-        print('Image uploaded successfully: ${response.data}');
-      }
+    final formData = FormData.fromMap({
+      "file": await MultipartFile.fromFile(
+        pathFile,
+        filename: pathFile.split('/').last,
+      ),
+      "itemId": itemId,
+      "k": DateTime.now().millisecondsSinceEpoch,
+    });
+    final response = await Dio().post(
+      'https://pos7d.site/MAZO/Upload.php',
+      data: formData,
+      onSendProgress: (int sent, int total) {},
+    );
+    if (response.statusCode == 200) {
+      print('Image uploaded successfully: ${response.data}');
+    } else {
+      print("Image Not Uploaded");
+    }
   }
 }
