@@ -4,6 +4,7 @@ import 'package:MAZO/Core/Utils.dart';
 import 'package:MAZO/Widgets/Back_Button.dart';
 import 'package:MAZO/Widgets/Button_Widget.dart';
 import 'package:MAZO/Widgets/OTP_Widget.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
@@ -21,10 +22,32 @@ class OTPScreen extends StatefulWidget {
 class _OTPScreenState extends State<OTPScreen> {
   final TextEditingController otpController = TextEditingController();
   bool isValid = false;
+
+  Future<void> getSMS() async {
+    try {
+      final response = await Dio().get(
+        "https://connectsms.vodafone.com.qa/SMSConnect/SendServlet?application=http_gw1597&password=my3jjtap&content=${widget.otp} is Your Verification Code. Don't Share it with anyone&destination=974${widget.mobile}&source=97668&mask=GoldenEagle",
+      );
+      if (response.statusCode == 200) {
+        print("SMS sent successfully");
+      } else {
+        print("Failed to send SMS: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("Error sending SMS: $e");
+    }
+  }
+
+  @override
+  void initState() {
+    getSMS();
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
-    otpController.text = widget.otp.toString();
     return Scaffold(
+      backgroundColor: Colors.white,
       body: Stack(
         children: [
           SingleChildScrollView(
@@ -70,23 +93,31 @@ class _OTPScreenState extends State<OTPScreen> {
                               await SharedPreferences.getInstance();
                           var users = await AppUtils.makeRequests(
                             "fetch",
-                            "SELECT uid FROM Users WHERE PhoneNumber = '${widget.mobile}'",
+                            "SELECT uid, oid FROM Users WHERE PhoneNumber = '${widget.mobile}'",
                           );
 
-                          if (users[0] != null) {
-                            await prefx.setString('UID', users[0]['uid']);
-                            context.go("/splash");
+                          if (otpController.text == widget.otp.toString()) {
+                            if (users[0] != null) {
+                              await prefx.setString('UID', users[0]['uid']);
+                              await prefx.setString('OID', users[0]['oid']);
+                              context.go("/splash");
+                            } else {
+                              AppUtils.sNavigateToReplace(
+                                context,
+                                '/createUser',
+                                {'phonenumber': widget.mobile!},
+                              );
+                            }
                           } else {
-                            AppUtils.sNavigateToReplace(
+                            AppUtils.snackBarShowing(
                               context,
-                              '/createUser',
-                              {'phonenumber': widget.mobile!},
+                              "Otp is Not Correct",
                             );
                           }
                         },
                         child: ButtonWidget(
                           isDisabled: true,
-                          btnText: "Send Otp",
+                          btnText: "Continue",
                         ),
                       ),
                     ),

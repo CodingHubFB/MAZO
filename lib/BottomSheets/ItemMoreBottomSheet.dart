@@ -1,4 +1,5 @@
 import 'package:MAZO/BottomSheets/ItemDetailsBottomSheet.dart';
+import 'package:MAZO/Core/Utils.dart';
 import 'package:MAZO/provider/App_Provider.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -29,7 +30,20 @@ class SimpleMoreItems {
                 ListTile(
                   leading: const Icon(Iconsax.user_octagon),
                   title: const Text('عرض الملف الشخصي'),
-                  onTap: () async {},
+                  onTap: () async {
+                    SharedPreferences prefx =
+                        await SharedPreferences.getInstance();
+                    AppUtils.sNavigateToReplace(context, '/UserProfile', {
+                      'userId': prefx.getString("UID")!,
+                    });
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Iconsax.shopping_cart),
+                  title: const Text('عرض سلة التسوق'),
+                  onTap: () async {
+                    context.go('/cart');
+                  },
                 ),
                 ListTile(
                   leading: const Icon(Iconsax.note),
@@ -41,32 +55,48 @@ class SimpleMoreItems {
                           Provider.of<AppProvider>(
                             context,
                             listen: false,
-                          ).putItems[Provider.of<AppProvider>(
-                            context,
-                            listen: false,
-                          ).itemId]['name'],
+                          ).putItems[int.parse(
+                            Provider.of<AppProvider>(
+                              context,
+                              listen: false,
+                            ).currentIndex,
+                          )]['name'],
                       description:
                           Provider.of<AppProvider>(
                             context,
                             listen: false,
-                          ).putItems[Provider.of<AppProvider>(
+                          ).putItems[int.parse(
+                            Provider.of<AppProvider>(
+                              context,
+                              listen: false,
+                            ).currentIndex,
+                          )]['description'],
+                      itemId:
+                          Provider.of<AppProvider>(
                             context,
                             listen: false,
-                          ).itemId]['description'],
-                      likes: 120, // عدّل على حسب بياناتك
-                      views: 4500,
+                          ).itemId.toString(),
+                      views:
+                          Provider.of<AppProvider>(
+                            context,
+                            listen: false,
+                          ).putItems[int.parse(
+                            Provider.of<AppProvider>(
+                              context,
+                              listen: false,
+                            ).currentIndex,
+                          )]['Views'],
                       publishDate: DateTime.parse(
-                        '2024-01-15',
+                        Provider.of<AppProvider>(
+                          context,
+                          listen: false,
+                        ).putItems[int.parse(
+                          Provider.of<AppProvider>(
+                            context,
+                            listen: false,
+                          ).currentIndex,
+                        )]['created_at'],
                       ), // عدّل حسب تاريخ النشر الحقيقي
-                    );
-                    print(
-                      Provider.of<AppProvider>(
-                        context,
-                        listen: false,
-                      ).putItems[Provider.of<AppProvider>(
-                        context,
-                        listen: false,
-                      ).itemId],
                     );
                   },
                 ),

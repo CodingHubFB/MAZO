@@ -1,3 +1,4 @@
+import 'package:MAZO/BottomSheets/CommentEditBottomSheet.dart';
 import 'package:MAZO/Core/Utils.dart';
 import 'package:MAZO/Widgets/Input_Widget.dart';
 import 'package:MAZO/provider/App_Provider.dart';
@@ -9,6 +10,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 void showCommentsBottomSheet(BuildContext context) {
   TextEditingController commentController = TextEditingController();
   List commentsList = [];
+  String commentx = "";
+  String commentId = "";
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
@@ -24,7 +27,7 @@ void showCommentsBottomSheet(BuildContext context) {
             Future getComments() async {
               var comments = await AppUtils.makeRequests(
                 "fetch",
-                "SELECT Users.Fullname, Users.urlAvatar, Comments.`comment` FROM Users RIGHT JOIN Comments ON Users.uid COLLATE utf8_unicode_ci = Comments.user_id COLLATE utf8_unicode_ci WHERE item_id = '${Provider.of<AppProvider>(context, listen: false).itemId.toString()}'",
+                "SELECT Users.Fullname, Users.urlAvatar, Comments.`id`, Comments.`comment` FROM Users RIGHT JOIN Comments ON Users.uid COLLATE utf8_unicode_ci = Comments.user_id COLLATE utf8_unicode_ci WHERE item_id = '${Provider.of<AppProvider>(context, listen: false).itemId.toString()}'",
               );
               setState(() {
                 commentsList = comments;
@@ -119,46 +122,72 @@ void showCommentsBottomSheet(BuildContext context) {
                                     ),
                                     child: Row(
                                       crossAxisAlignment:
-                                          CrossAxisAlignment.start,
+                                          CrossAxisAlignment.center,
                                       children: [
-                                        CircleAvatar(
-                                          radius: 20,
-                                          backgroundColor: Colors.grey[300],
-                                          backgroundImage:
-                                              comment["urlAvatar"] != null
-                                                  ? NetworkImage(
-                                                    "https://pos7d.site/MAZO/${comment["urlAvatar"]}",
-                                                  )
-                                                  : null,
-                                          child:
-                                              comment["urlAvatar"] == null
-                                                  ? Icon(
-                                                    Icons.person,
-                                                    color: Colors.grey,
-                                                  )
-                                                  : null,
-                                        ),
-                                        SizedBox(width: 10),
                                         Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
+                                          child: Row(
                                             children: [
-                                              Text(
-                                                comment["Fullname"] ??
-                                                    "مستخدم غير معروف",
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 14,
-                                                ),
+                                              CircleAvatar(
+                                                radius: 20,
+                                                backgroundColor:
+                                                    Colors.grey[300],
+                                                backgroundImage:
+                                                    comment["urlAvatar"] != null
+                                                        ? NetworkImage(
+                                                          "https://pos7d.site/MAZO/${comment["urlAvatar"]}",
+                                                        )
+                                                        : null,
+                                                child:
+                                                    comment["urlAvatar"] == null
+                                                        ? Icon(
+                                                          Icons.person,
+                                                          color: Colors.grey,
+                                                        )
+                                                        : null,
                                               ),
-                                              SizedBox(height: 4),
-                                              Text(
-                                                comment["comment"],
-                                                style: TextStyle(fontSize: 13),
+                                              SizedBox(width: 10),
+                                              Expanded(
+                                                child: Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      comment["Fullname"] ??
+                                                          "مستخدم غير معروف",
+                                                      style: TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        fontSize: 14,
+                                                      ),
+                                                    ),
+                                                    SizedBox(height: 4),
+                                                    Text(
+                                                      comment["comment"],
+                                                      style: TextStyle(
+                                                        fontSize: 13,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
                                               ),
                                             ],
                                           ),
+                                        ),
+                                        IconButton(
+                                          onPressed: () async {
+                                            var result =
+                                                await SimpleMoreComment.showItemComments(
+                                                  context,
+                                                  comment['id'],
+                                                );
+                                            print(result[0]['comment']);
+                                            commentx = result[0]['comment'];
+                                            commentId = result[0]['id'];
+                                            commentController.text =
+                                                result[0]['comment'];
+                                          },
+
+                                          icon: Icon(Iconsax.more_square),
                                         ),
                                       ],
                                     ),
@@ -183,11 +212,22 @@ void showCommentsBottomSheet(BuildContext context) {
                                 onPressed: () async {
                                   SharedPreferences prefx =
                                       await SharedPreferences.getInstance();
-
-                                  await AppUtils.makeRequests(
-                                    "query",
-                                    "INSERT INTO Comments VALUES(NULL, '${commentController.text}', '${prefx.getString("UID")}', '${Provider.of<AppProvider>(context, listen: false).itemId.toString()}', '${DateTime.now()}')",
+                                  print(commentId);
+                                  print(commentx);
+                                  print(
+                                    "UPDATE Comments SET comment WHERE id = '$commentId'",
                                   );
+                                  if (commentx.isNotEmpty) {
+                                    await AppUtils.makeRequests(
+                                      "query",
+                                      "UPDATE Comments SET comment = '${commentController.text}' WHERE id = '$commentId'",
+                                    );
+                                  } else {
+                                    await AppUtils.makeRequests(
+                                      "query",
+                                      "INSERT INTO Comments VALUES(NULL, '${commentController.text}', '${prefx.getString("UID")}', '${Provider.of<AppProvider>(context, listen: false).itemId.toString()}', '${DateTime.now()}')",
+                                    );
+                                  }
 
                                   commentController.clear();
                                   getComments();

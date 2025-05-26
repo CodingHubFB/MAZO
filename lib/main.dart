@@ -2,10 +2,17 @@ import 'package:MAZO/provider/App_Provider.dart';
 import 'package:flutter/material.dart';
 import 'package:MAZO/Core/Theme.dart';
 import 'package:MAZO/Routes/App_Router.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setPreferredOrientations(
+    [
+      DeviceOrientation.portraitDown,
+      DeviceOrientation.portraitUp,
+    ]
+  );
   runApp(MyApp());
 }
 

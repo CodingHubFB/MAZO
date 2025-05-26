@@ -1,11 +1,10 @@
+import 'package:MAZO/Core/Utils.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-class Userinfobottomsheet {
-  static void showMore(BuildContext context) {
-    showModalBottomSheet(
+class SimpleUserMore {
+  static Future showUserMore(BuildContext context, itmid) {
+    return showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       builder: (BuildContext ctx) {
@@ -22,18 +21,23 @@ class Userinfobottomsheet {
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
-                leading: const Icon(Iconsax.profile_circle),
-                title: const Text('View Profile'),
-                onTap: () async {},
+                leading: const Icon(Iconsax.edit),
+                title: const Text('Edit Item'),
+                onTap: () async {
+                  AppUtils.sNavigateToReplace(context, '/EditDetailsItem', {
+                    'item_id': itmid,
+                  });
+                },
               ),
               ListTile(
-                leading: const Icon(Iconsax.logout),
-                title: const Text('Logout'),
+                leading: const Icon(Iconsax.trash),
+                title: const Text('Delete Item'),
                 onTap: () async {
-                  SharedPreferences prefx =
-                      await SharedPreferences.getInstance();
-                  prefx.remove("UID");
-                  context.go('/splash');
+                  AppUtils.makeRequests(
+                    "query",
+                    "DELETE FROM Items WHERE id = '$itmid'",
+                  );
+                  Navigator.pop(context, 'koko');
                 },
               ),
             ],

@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:MAZO/BottomSheets/CommentsBottomSheet.dart';
 import 'package:MAZO/BottomSheets/ItemMoreBottomSheet.dart';
 import 'package:MAZO/BottomSheets/MediaPickerBottomSheet.dart';
-import 'package:MAZO/BottomSheets/CartBottomSheet.dart';
 import 'package:MAZO/Core/Utils.dart';
 import 'package:MAZO/Screens/SearchScreen.dart';
 import 'package:MAZO/provider/App_Provider.dart';
@@ -15,14 +14,20 @@ import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+class HomeScreenProfile extends StatefulWidget {
+  final String userProfileId;
+  final String itemId;
+  const HomeScreenProfile({
+    super.key,
+    required this.userProfileId,
+    required this.itemId,
+  });
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  State<HomeScreenProfile> createState() => _HomeScreenProfileState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenProfileState extends State<HomeScreenProfile> {
   final PageController _pageController = PageController();
   final Map<int, Map<int, BetterPlayerController>> videoControllers = {};
   bool showCenterIcon = false;
@@ -36,26 +41,6 @@ class _HomeScreenState extends State<HomeScreen> {
   VoidCallback? videoListener;
   final Map<String, Duration> watchedDurations = {};
   final Map<String, Timer> watchTimers = {};
-  String qtt = "";
-
-  Future getCartQtt(itemId) async {
-    SharedPreferences prefx = await SharedPreferences.getInstance();
-    var cartQTT = await AppUtils.makeRequests(
-      "fetch",
-      "SELECT qtt FROM Cart WHERE user_id = '${prefx.getString("UID")}' AND item_id = '$itemId' AND order_id = '${prefx.getString("OID")}' ",
-    );
-
-    setState(() {
-      if (cartQTT != null &&
-          cartQTT.isNotEmpty &&
-          cartQTT[0] != null &&
-          cartQTT[0]['qtt'] != null) {
-        qtt = cartQTT[0]['qtt'].toString();
-      } else {
-        qtt = "0";
-      }
-    });
-  }
 
   void playVideo(int itemIndex, int mediaIndex) {
     // أوقف كل الفيديوهات التانية
@@ -189,7 +174,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Future getItems() async {
     var itemsx = await AppUtils.makeRequests(
       "fetch",
-      "SELECT * FROM Items WHERE visibility = 'Public'",
+      "SELECT * FROM Items WHERE visibility = 'Public' AND id = '${widget.itemId}'",
     );
 
     // getCurrentMerchant();
@@ -226,7 +211,6 @@ class _HomeScreenState extends State<HomeScreen> {
         print("⛔ أول ميديا مش فيديو، مش هيشتغل تلقائي.");
       }
       Provider.of<AppProvider>(context, listen: false).setPutItems(items);
-      Provider.of<AppProvider>(context, listen: false).setCurrentId("0");
       Provider.of<AppProvider>(
         context,
         listen: false,
@@ -238,7 +222,6 @@ class _HomeScreenState extends State<HomeScreen> {
       getCurrentMerchant(
         Provider.of<AppProvider>(context, listen: false).currentUser,
       );
-      getCartQtt(firstItem['id']);
       getCountLikes(firstItem['id']);
       getUserLike(firstItem['id']);
     }
@@ -308,21 +291,15 @@ class _HomeScreenState extends State<HomeScreen> {
     videoControllers[itemIndex]![mediaIndex] = controller;
   }
 
-  void disposeVideoController(int itemIndex, int mediaIndex) async {
+  void disposeVideoController(int itemIndex, int mediaIndex) {
     if (videoControllers.containsKey(itemIndex) &&
         videoControllers[itemIndex]!.containsKey(mediaIndex)) {
-      final controller = videoControllers[itemIndex]![mediaIndex];
-
-      try {
-        controller?.videoPlayerController?.removeListener(
-          () {},
-        ); // نظف أي listener
-        await controller?.pause();
-      } catch (_) {}
-
-      await Future.delayed(Duration(milliseconds: 200));
-      controller?.dispose();
+      videoControllers[itemIndex]![mediaIndex]?.dispose();
       videoControllers[itemIndex]!.remove(mediaIndex);
+      // Remove item entry if empty
+      if (videoControllers[itemIndex]!.isEmpty) {
+        videoControllers.remove(itemIndex);
+      }
     }
   }
 
@@ -369,14 +346,15 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
           child: IconButton(
-            icon: const Icon(Iconsax.add_circle, color: Colors.white, size: 25),
+            icon: const Icon(
+              Iconsax.arrow_circle_left,
+              color: Colors.white,
+              size: 25,
+            ),
             onPressed: () async {
-              SharedPreferences prefx = await SharedPreferences.getInstance();
-              if (prefx.getString("UID") != null) {
-                MediaPickerBottomSheet.showPrimaryOptions(context, true);
-              } else {
-                context.go('/login');
-              }
+              AppUtils.sNavigateToReplace(context, '/UserProfile', {
+                'userId': widget.userProfileId,
+              });
             },
           ),
         ),
@@ -491,10 +469,10 @@ class _HomeScreenState extends State<HomeScreen> {
             "query",
             "UPDATE Items SET Views = Views + 1 WHERE id = '${path['id']}'",
           );
-          getCartQtt(items[_currentIndex]['id']);
           getCountLikes(items[_currentIndex]['id']);
           getUserLike(items[_currentIndex]['id']);
           getCurrentMerchant(items[_currentIndex]['uid']);
+
           setState(() {});
         },
         itemBuilder: (context, index) {
@@ -665,7 +643,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 },
               ),
 
-              // محتوى الفيديو فوق (مثلاً اسم المستخدم والوصف)
               Positioned(
                 left: 0,
                 bottom: videoDuration != null && videoPosition != null ? 30 : 0,
@@ -895,52 +872,17 @@ class _HomeScreenState extends State<HomeScreen> {
                         ],
                       ),
                       child: IconButton(
-                        icon: Icon(
-                          qtt != "0"
-                              ? Iconsax.shopping_cart5
-                              : Iconsax.shopping_cart,
+                        icon: const Icon(
+                          Iconsax.shopping_cart,
                           color: Colors.white,
                           size: 32,
                         ),
-                        onPressed: () async {
-                          SharedPreferences prefx =
-                              await SharedPreferences.getInstance();
-                          if (prefx.getString("OID") != null) {
-                            var notCartAdded = await AppUtils.makeRequests(
-                              "fetch",
-                              "SELECT * FROM Cart WHERE user_id = '${prefx.getString("UID")}' AND item_id = '${items[index]['id']}' AND order_id = '${prefx.getString("OID")}' ",
-                            );
-                            if (notCartAdded[0] == null) {
-                              AppUtils.makeRequests(
-                                "query",
-                                "INSERT INTO Cart VALUES (NULL, '${prefx.getString("UID")}', '${items[index]['id']}', '0','${prefx.getString("OID")}')",
-                              );
-                              getCartQtt(items[index]['id']);
-                            }
-
-                            CartBottomSheet.showCart(
-                              context,
-                              notCartAdded[0]['id'],
-                              int.parse(qtt),
-                              (newQtt) {
-                                if (newQtt == 0) {
-                                  AppUtils.makeRequests(
-                                    "query",
-                                    "DELETE FROM Cart WHERE id = '${notCartAdded[0]['id']}'",
-                                  );
-                                }
-                                getCartQtt(items[index]['id']);
-                              },
-                            );
-                          } else {
-                            context.go('/login');
-                          }
-                        },
+                        onPressed: () {},
                       ),
                     ),
                     SizedBox(height: 10),
                     Text(
-                      qtt,
+                      "0",
                       style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,

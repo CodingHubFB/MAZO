@@ -159,7 +159,7 @@ class MediaPickerBottomSheet {
                       Provider.of<AppProvider>(
                         MyApp.navigatorKey.currentContext!,
                         listen: false,
-                      ).addMedia(value.path);
+                      ).addNewMedia(value.path);
 
                       if (navigate) {
                         setItemData();
@@ -182,7 +182,7 @@ class MediaPickerBottomSheet {
                       Provider.of<AppProvider>(
                         MyApp.navigatorKey.currentContext!,
                         listen: false,
-                      ).addMedia(value.path);
+                      ).addNewMedia(value.path);
 
                       if (navigate) {
                         setItemData();

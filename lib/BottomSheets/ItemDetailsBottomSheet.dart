@@ -1,16 +1,18 @@
+import 'package:MAZO/Core/Utils.dart';
 import 'package:MAZO/provider/App_Provider.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' as datol;
-import 'package:provider/provider.dart'; // لتنسيق التاريخ
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // لتنسيق التاريخ
 
 void showItemDetailsBottomSheet(
   BuildContext context, {
   required String title,
   required String description,
-  required int likes,
-  required int views,
+  required String views,
+  required String itemId,
   required DateTime publishDate,
-}) {
+}) async {
   final formattedDateMDay = datol.DateFormat('MMM dd').format(
     DateTime.parse(
       Provider.of<AppProvider>(context, listen: false)
@@ -33,6 +35,12 @@ void showItemDetailsBottomSheet(
           .split(' ')[0],
     ),
   );
+
+  var itemCount = await AppUtils.makeRequests(
+    "fetch",
+    "SELECT COUNT(id) as likes FROM Likes WHERE item_id = '$itemId'",
+  );
+  print("SELECT COUNT(id) as likes FROM Likes WHERE item_id = '$itemId'");
 
   showModalBottomSheet(
     context: context,
@@ -81,7 +89,7 @@ void showItemDetailsBottomSheet(
                     children: [
                       _buildInfoColumn(
                         Icons.favorite,
-                        likes.toString(),
+                        itemCount[0]['likes'],
                         'لايكات',
                       ),
                       _buildInfoColumn(

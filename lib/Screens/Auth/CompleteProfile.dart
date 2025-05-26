@@ -86,14 +86,16 @@ class _CreateUserState extends State<CreateUser> {
                       child: GestureDetector(
                         onTap: () async {
                           int uid = 1000 + Random().nextInt(9999);
+                          int oid = 1000 + Random().nextInt(9999);
                           AppUtils().uploadUsers(userAvatar, uid);
                           AppUtils.makeRequests(
                             "query",
-                            "INSERT INTO Users VALUES(NULL, '${nameController.text}', '${widget.phonenumber}', '$uid', 'uploads/Users/$uid.webp', '${DateTime.now().toString().split(' ')[0]}') ",
+                            "INSERT INTO Users VALUES(NULL, '${nameController.text}', '${widget.phonenumber}', '$uid','$oid', 'uploads/Users/$uid.webp', '${DateTime.now().toString().split(' ')[0]}') ",
                           );
                           SharedPreferences prefx =
                               await SharedPreferences.getInstance();
                           prefx.setString("UID", uid.toString());
+                          prefx.setString("OID", oid.toString());
                           context.go('/splash');
                         },
                         child: ButtonWidget(
@@ -111,7 +113,9 @@ class _CreateUserState extends State<CreateUser> {
             top: 40,
             left: 20,
             child: InkWell(
-              onTap: () {context.go('/home');},
+              onTap: () {
+                context.go('/home');
+              },
               child: RectButtonWidget(
                 bicon: Iconsax.arrow_circle_left,
                 bsize: 35,

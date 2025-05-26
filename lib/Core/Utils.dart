@@ -22,6 +22,16 @@ class AppUtils {
     ).showSnackBar(SnackBar(content: Text(snackTitle)));
   }
 
+  // Core/Utils.dart
+  static Future<List<String>> parseMedia(String jsonString) async {
+    try {
+      final List<dynamic> decoded = jsonDecode(jsonString);
+      return decoded.map((e) => e.toString()).toList();
+    } catch (e) {
+      return [];
+    }
+  }
+
   static makeRequests(type, query) async {
     final response = await Dio().get(
       "https://pos7d.site/MAZO/Requests.php?$type=$query&k=${DateTime.now().millisecondsSinceEpoch}",

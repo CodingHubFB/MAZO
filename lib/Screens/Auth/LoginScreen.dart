@@ -72,7 +72,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: GestureDetector(
                     onTap: () async {
                       if (isValid) {
-                        int otp = 100000 + Random().nextInt(999999);
+                        int otp = 100000 + Random().nextInt(900000);
                         AppUtils.sNavigateToReplace(context, '/otp', {
                           'mobile': mobileController.text,
                           'otp': otp.toString(),
