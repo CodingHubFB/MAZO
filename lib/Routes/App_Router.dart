@@ -1,19 +1,20 @@
-import 'package:MAZO/Screens/AddItemsDetails/Add_Items.dart';
-import 'package:MAZO/Screens/AddItemsDetails/Edit_Items.dart';
-import 'package:MAZO/Screens/Auth/CompleteProfile.dart';
-import 'package:MAZO/Screens/Auth/LoginScreen.dart';
-import 'package:MAZO/Screens/Auth/OTPScreen.dart';
-import 'package:MAZO/Screens/CartScreen.dart';
-import 'package:MAZO/Screens/Checkout.dart';
-import 'package:MAZO/Screens/Checkout_Summary.dart';
-import 'package:MAZO/Screens/Home/Home_Screen_Profile.dart';
-import 'package:MAZO/Screens/Profile/User_Profile.dart';
-import 'package:MAZO/Screens/SearchScreen.dart';
-import 'package:MAZO/Screens/Shipping_Orders.dart';
+import 'package:mazo/Screens/AddItemsDetails/Add_Items.dart';
+import 'package:mazo/Screens/AddItemsDetails/Edit_Items.dart';
+import 'package:mazo/Screens/Auth/CompleteProfile.dart';
+import 'package:mazo/Screens/Auth/LoginScreen.dart';
+import 'package:mazo/Screens/Auth/OTPScreen.dart';
+import 'package:mazo/Screens/CartScreen.dart';
+import 'package:mazo/Screens/Checkout.dart';
+import 'package:mazo/Screens/Checkout_Summary.dart';
+import 'package:mazo/Screens/Home/Home_Screen_Profile.dart';
+import 'package:mazo/Screens/PaymentSuccess.dart';
+import 'package:mazo/Screens/Profile/User_Profile.dart';
+import 'package:mazo/Screens/SearchScreen.dart';
+import 'package:mazo/Screens/Shipping_Orders.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:MAZO/Screens/Home/Home_Screen.dart';
-import 'package:MAZO/Screens/Splash/SplashScreen.dart';
+import 'package:mazo/Screens/Home/Home_Screen.dart';
+import 'package:mazo/Screens/Splash/SplashScreen.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 final GoRouter router = GoRouter(
@@ -70,8 +71,16 @@ final GoRouter router = GoRouter(
       path: '/CheckoutSummary',
       builder: (context, state) => OrderSummary(),
     ),
+    GoRoute(
+      path: '/paymentSuccess',
+      builder: (context, state) => const PaymentSuccess(),
+    ),
+
     GoRoute(path: '/checkout', builder: (context, state) => CheckoutScreen()),
-    GoRoute(path: '/shippingOrders', builder: (context, state) => ShippingOrders()),
+    GoRoute(
+      path: '/shippingOrders',
+      builder: (context, state) => ShippingOrders(),
+    ),
     GoRoute(path: '/addDetails', builder: (context, state) => AddItems()),
     GoRoute(path: '/cart', builder: (context, state) => CartScreen()),
   ],

@@ -1,4 +1,4 @@
-import 'package:MAZO/Core/Utils.dart';
+import 'package:mazo/Core/Utils.dart';
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 

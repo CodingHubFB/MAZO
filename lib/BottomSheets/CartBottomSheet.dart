@@ -1,5 +1,5 @@
-import 'package:MAZO/Core/Utils.dart';
-import 'package:MAZO/Widgets/Back_Button.dart';
+import 'package:mazo/Core/Utils.dart';
+import 'package:mazo/Widgets/Back_Button.dart';
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 

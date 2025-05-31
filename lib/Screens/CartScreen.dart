@@ -1,7 +1,7 @@
-import 'package:MAZO/Core/Theme.dart';
-import 'package:MAZO/Core/Utils.dart';
-import 'package:MAZO/Widgets/Back_Button.dart';
-import 'package:MAZO/Widgets/Button_Widget.dart';
+import 'package:mazo/Core/Theme.dart';
+import 'package:mazo/Core/Utils.dart';
+import 'package:mazo/Widgets/Back_Button.dart';
+import 'package:mazo/Widgets/Button_Widget.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';

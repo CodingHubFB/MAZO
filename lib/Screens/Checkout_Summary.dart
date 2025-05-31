@@ -1,5 +1,5 @@
-import 'package:MAZO/Core/Utils.dart';
-import 'package:MAZO/Widgets/Button_Widget.dart';
+import 'package:mazo/Core/Utils.dart';
+import 'package:mazo/Widgets/Button_Widget.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';

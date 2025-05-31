@@ -1,4 +1,4 @@
-# mazo
+# MAZO
 
 A new Flutter project.
 

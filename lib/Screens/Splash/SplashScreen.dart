@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:go_router/go_router.dart';
-import 'package:MAZO/Core/Theme.dart';
+import 'package:mazo/Core/Theme.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -14,6 +14,7 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     Future.delayed(const Duration(seconds: 3), () {
+      if (!mounted) return; 
       context.go('/home'); // التنقل باستخدام GoRouter
     });
     super.initState();

@@ -11,19 +11,26 @@ class AppProvider extends ChangeNotifier {
   List putItems = [];
   String commentBool = "Off";
   String currentUser = "";
+  List selectedAddress = [];
   List<String> _newMedia = [];
-List<String> get newMedia => _newMedia;
+  List<String> get newMedia => _newMedia;
 
-void addNewMedia(String path) {
-  media.add(path);
-  _newMedia.add(path);
-  notifyListeners();
-}
+  void addNewMedia(String path) {
+    media.add(path);
+    _newMedia.add(path);
+    notifyListeners();
+  }
 
-void clearNewMedia() {
-  _newMedia.clear();
-  notifyListeners();
-}
+  void clearNewMedia() {
+    _newMedia.clear();
+    notifyListeners();
+  }
+
+  void setSelectedAddress(selectedAddresses) {
+    selectedAddress.clear();
+    selectedAddress.add(selectedAddresses);
+    notifyListeners();
+  }
 
   void setCurrentUsers(currentUsers) {
     currentUser = currentUsers;

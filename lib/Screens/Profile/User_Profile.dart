@@ -1,5 +1,5 @@
-import 'package:MAZO/BottomSheets/UserMoreBottomSheet.dart';
-import 'package:MAZO/Core/Utils.dart';
+import 'package:mazo/BottomSheets/UserMoreBottomSheet.dart';
+import 'package:mazo/Core/Utils.dart';
 import 'package:better_player_plus/better_player_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';

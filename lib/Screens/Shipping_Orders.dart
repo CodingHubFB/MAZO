@@ -1,11 +1,13 @@
-import 'package:MAZO/Core/Utils.dart';
-import 'package:MAZO/Widgets/Button_Widget.dart';
-import 'package:MAZO/Widgets/DropdownFormField.dart';
-import 'package:MAZO/Widgets/Input_Widget.dart';
+import 'package:mazo/Core/Utils.dart';
+import 'package:mazo/Widgets/Button_Widget.dart';
+import 'package:mazo/Widgets/DropdownFormField.dart';
+import 'package:mazo/Widgets/Input_Widget.dart';
+import 'package:mazo/provider/App_Provider.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ShippingOrders extends StatefulWidget {
@@ -26,6 +28,7 @@ class _ShippingOrdersState extends State<ShippingOrders> {
   String? selectedCity;
   bool saveAddress = false;
   bool openAddressForm = false;
+  int isActive = 0;
 
   List<String> arabCountries = [
     "Algeria",
@@ -118,51 +121,84 @@ class _ShippingOrdersState extends State<ShippingOrders> {
         title: Text("Shipping Details", style: TextStyle(color: Colors.black)),
         backgroundColor: Colors.white,
       ),
-      body: SingleChildScrollView(
-        child: Container(
-          margin: EdgeInsets.all(10),
-          child: Column(
-            children: [
-              ...List.generate(addressesList.length, (i) {
-                return SizedBox(
-                  width: double.maxFinite,
-                  height: 80,
-                  child: Card(
-                    color: Colors.grey.shade100,
-                    elevation: 0,
-                    child: Row(
-                      children: [
-                        SizedBox(width: 10),
-                        Icon(Iconsax.location),
-                        SizedBox(width: 10),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              "${addressesList[i]['City']}, ${addressesList[i]['Country']}",
-                            ),
-                            Text(
-                              "Zone No: ${addressesList[i]['Zone Number']}, Street No: ${addressesList[i]['Street Number']}, Building No: ${addressesList[i]['Building Number']}",
-                            ),
-                          ],
+      body: CustomScrollView(
+        slivers: [
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(10),
+              child: Column(
+                children: [
+                  ...List.generate(addressesList.length, (i) {
+                    return GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          isActive = i;
+                          Provider.of<AppProvider>(
+                            context,
+                            listen: false,
+                          ).setSelectedAddress(addressesList[i]);
+                        });
+                      },
+                      child: SizedBox(
+                        width: double.maxFinite,
+                        height: 80,
+                        child: Card(
+                          shape: RoundedRectangleBorder(
+                            side:
+                                isActive == i
+                                    ? BorderSide(color: Colors.black, width: 2)
+                                    : BorderSide.none,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          color: Colors.grey.shade100,
+                          elevation: 0,
+                          child: Row(
+                            children: [
+                              SizedBox(width: 10),
+                              Icon(Iconsax.location),
+                              SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      "${addressesList[i]['City']}, ${addressesList[i]['Country']}",
+                                    ),
+                                    Text(
+                                      "Zone: ${addressesList[i]['Zone Number']}, Street: ${addressesList[i]['Street Number']}, Building: ${addressesList[i]['Building Number']}",
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ],
+                      ),
+                    );
+                  }),
+                  SizedBox(height: 10),
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        openAddressForm = !openAddressForm;
+                      });
+                    },
+                    child: ButtonWidget(
+                      btnText:
+                          openAddressForm ? "Close Form" : "Add New Address",
                     ),
                   ),
-                );
-              }),
-              SizedBox(height: 10),
-              GestureDetector(
-                onTap: () {
-                  setState(() {
-                    openAddressForm = true;
-                  });
-                },
-                child: ButtonWidget(btnText: "Add New Address"),
+                  SizedBox(height: 10),
+                ],
               ),
-              SizedBox(height: 20),
-              Expanded(
+            ),
+          ),
+
+          if (openAddressForm)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
                 child: Column(
                   children: [
                     InputWidget(icontroller: fullName, iHint: "Full Name"),
@@ -187,10 +223,10 @@ class _ShippingOrdersState extends State<ShippingOrders> {
                       onChanged: (val) {
                         setState(() {
                           selectedCountry = val!;
+                          getArabCities();
                         });
                       },
                     ),
-
                     SizedBox(height: 15),
                     DropdownFormMenuField(
                       iHint: "City",
@@ -257,13 +293,14 @@ class _ShippingOrdersState extends State<ShippingOrders> {
                         ],
                       ),
                     ),
+                    SizedBox(height: 70),
                   ],
                 ),
               ),
-            ],
-          ),
-        ),
+            ),
+        ],
       ),
+
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton:
           isKeyboardOpen
@@ -272,17 +309,32 @@ class _ShippingOrdersState extends State<ShippingOrders> {
                 onTap: () async {
                   SharedPreferences prefx =
                       await SharedPreferences.getInstance();
+
                   if (saveAddress == true) {
-                    AppUtils.makeRequests(
+                    // 1. Add the record
+                    await AppUtils.makeRequests(
                       "query",
                       "INSERT INTO Shipping_Orders VALUES(NULL, '${fullName.text}', '${mobileNumber.text}', '${email.text}', '$selectedCountry', '$selectedCity', '${zoneNo.text}', '${streetNo.text}', '${buildNo.text}', '${prefx.getString("UID")}','${prefx.getString("OID")}')",
                     );
+
+                    // 2. Get the latest inserted record for this user and order
+                    var latestAddress = await AppUtils.makeRequests(
+                      "fetch",
+                      "SELECT * FROM Shipping_Orders WHERE uid = '${prefx.getString("UID")}' AND oid = '${prefx.getString("OID")}' ORDER BY id DESC LIMIT 1",
+                    );
+
+                    print("Latest address added:");
+                    Provider.of<AppProvider>(
+                      context,
+                      listen: false,
+                    ).setSelectedAddress(latestAddress[0]);
                   }
                   context.go('/checkout');
                 },
+
                 child: SizedBox(
                   height: 60,
-                  child: ButtonWidget(btnText: "Pay"),
+                  child: ButtonWidget(btnText: "Checkout"),
                 ),
               ),
     );

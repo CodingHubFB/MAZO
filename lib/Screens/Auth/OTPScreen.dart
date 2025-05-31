@@ -1,9 +1,9 @@
 import 'dart:math';
 
-import 'package:MAZO/Core/Utils.dart';
-import 'package:MAZO/Widgets/Back_Button.dart';
-import 'package:MAZO/Widgets/Button_Widget.dart';
-import 'package:MAZO/Widgets/OTP_Widget.dart';
+import 'package:mazo/Core/Utils.dart';
+import 'package:mazo/Widgets/Back_Button.dart';
+import 'package:mazo/Widgets/Button_Widget.dart';
+import 'package:mazo/Widgets/OTP_Widget.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';

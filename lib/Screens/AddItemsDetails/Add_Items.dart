@@ -1,9 +1,9 @@
 import 'dart:io';
 
-import 'package:MAZO/BottomSheets/MediaPickerBottomSheet.dart';
-import 'package:MAZO/Core/Utils.dart';
-import 'package:MAZO/Widgets/Input_Widget.dart';
-import 'package:MAZO/provider/App_Provider.dart';
+import 'package:mazo/BottomSheets/MediaPickerBottomSheet.dart';
+import 'package:mazo/Core/Utils.dart';
+import 'package:mazo/Widgets/Input_Widget.dart';
+import 'package:mazo/provider/App_Provider.dart';
 import 'package:better_player_plus/better_player_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';

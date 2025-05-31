@@ -1,6 +1,6 @@
-import 'package:MAZO/Core/Utils.dart';
-import 'package:MAZO/Routes/App_Router.dart' as MyApp;
-import 'package:MAZO/provider/App_Provider.dart';
+import 'package:mazo/Core/Utils.dart';
+import 'package:mazo/Routes/App_Router.dart' as MyApp;
+import 'package:mazo/provider/App_Provider.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';

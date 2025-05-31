@@ -1,18 +1,19 @@
-import 'package:MAZO/provider/App_Provider.dart';
+import 'package:mazo/firebase_options.dart';
+import 'package:mazo/provider/App_Provider.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:MAZO/Core/Theme.dart';
-import 'package:MAZO/Routes/App_Router.dart';
+import 'package:mazo/Core/Theme.dart';
+import 'package:mazo/Routes/App_Router.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  SystemChrome.setPreferredOrientations(
-    [
-      DeviceOrientation.portraitDown,
-      DeviceOrientation.portraitUp,
-    ]
-  );
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitDown,
+    DeviceOrientation.portraitUp,
+  ]);
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(MyApp());
 }
 

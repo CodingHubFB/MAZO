@@ -1,46 +1,28 @@
-import 'package:MAZO/Core/Utils.dart';
-import 'package:MAZO/provider/App_Provider.dart';
+import 'package:mazo/Core/Utils.dart';
+import 'package:mazo/provider/App_Provider.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' as datol;
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart'; // لتنسيق التاريخ
 
 void showItemDetailsBottomSheet(
   BuildContext context, {
-  required String title,
-  required String description,
-  required String views,
   required String itemId,
-  required DateTime publishDate,
 }) async {
-  final formattedDateMDay = datol.DateFormat('MMM dd').format(
-    DateTime.parse(
-      Provider.of<AppProvider>(context, listen: false)
-          .putItems[Provider.of<AppProvider>(
-            context,
-            listen: false,
-          ).itemId]['created_at']
-          .toString()
-          .split(' ')[0],
-    ),
+  var request = await AppUtils.makeRequests(
+    "fetch",
+    "SELECT * FROM Items WHERE id = '$itemId' ",
   );
-  final formattedDateYear = datol.DateFormat('yyyy').format(
-    DateTime.parse(
-      Provider.of<AppProvider>(context, listen: false)
-          .putItems[Provider.of<AppProvider>(
-            context,
-            listen: false,
-          ).itemId]['created_at']
-          .toString()
-          .split(' ')[0],
-    ),
-  );
+  final formattedDateMDay = datol.DateFormat(
+    'MMM dd',
+  ).format(DateTime.parse(request[0]['created_at']));
+  final formattedDateYear = datol.DateFormat(
+    'yyyy',
+  ).format(DateTime.parse(request[0]['created_at']));
 
   var itemCount = await AppUtils.makeRequests(
     "fetch",
     "SELECT COUNT(id) as likes FROM Likes WHERE item_id = '$itemId'",
   );
-  print("SELECT COUNT(id) as likes FROM Likes WHERE item_id = '$itemId'");
 
   showModalBottomSheet(
     context: context,
@@ -78,7 +60,7 @@ void showItemDetailsBottomSheet(
                   Divider(),
                   SizedBox(height: 15),
                   Text(
-                    title,
+                    request[0]['name'],
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
 
@@ -94,7 +76,14 @@ void showItemDetailsBottomSheet(
                       ),
                       _buildInfoColumn(
                         Icons.remove_red_eye,
-                        views.toString(),
+                        Provider.of<AppProvider>(context, listen: false)
+                            .putItems[int.parse(
+                              Provider.of<AppProvider>(
+                                context,
+                                listen: false,
+                              ).currentIndex,
+                            )]['Views']
+                            .toString(),
                         'مشاهدات',
                       ),
                       _buildInfoColumn(

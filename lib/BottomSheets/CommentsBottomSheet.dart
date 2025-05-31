@@ -1,8 +1,9 @@
-import 'package:MAZO/BottomSheets/CommentEditBottomSheet.dart';
-import 'package:MAZO/Core/Utils.dart';
-import 'package:MAZO/Widgets/Input_Widget.dart';
-import 'package:MAZO/provider/App_Provider.dart';
+import 'package:mazo/BottomSheets/CommentEditBottomSheet.dart';
+import 'package:mazo/Core/Utils.dart';
+import 'package:mazo/Widgets/Input_Widget.dart';
+import 'package:mazo/provider/App_Provider.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -12,6 +13,7 @@ void showCommentsBottomSheet(BuildContext context) {
   List commentsList = [];
   String commentx = "";
   String commentId = "";
+  String uid = "";
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
@@ -25,12 +27,14 @@ void showCommentsBottomSheet(BuildContext context) {
         child: StatefulBuilder(
           builder: (context, setState) {
             Future getComments() async {
+              SharedPreferences prefx = await SharedPreferences.getInstance();
               var comments = await AppUtils.makeRequests(
                 "fetch",
                 "SELECT Users.Fullname, Users.urlAvatar, Comments.`id`, Comments.`comment` FROM Users RIGHT JOIN Comments ON Users.uid COLLATE utf8_unicode_ci = Comments.user_id COLLATE utf8_unicode_ci WHERE item_id = '${Provider.of<AppProvider>(context, listen: false).itemId.toString()}'",
               );
               setState(() {
                 commentsList = comments;
+                uid = prefx.getString("UID")!;
               });
             }
 
@@ -204,6 +208,7 @@ void showCommentsBottomSheet(BuildContext context) {
                         children: [
                           SizedBox(height: 10),
                           InputWidget(
+                            isRead: uid != '' ? false : true,
                             icontroller: commentController,
                             iHint: "أضف تعليقاً",
                             isuffixIcon: Transform.flip(
@@ -212,25 +217,25 @@ void showCommentsBottomSheet(BuildContext context) {
                                 onPressed: () async {
                                   SharedPreferences prefx =
                                       await SharedPreferences.getInstance();
-                                  print(commentId);
-                                  print(commentx);
-                                  print(
-                                    "UPDATE Comments SET comment WHERE id = '$commentId'",
-                                  );
-                                  if (commentx.isNotEmpty) {
-                                    await AppUtils.makeRequests(
-                                      "query",
-                                      "UPDATE Comments SET comment = '${commentController.text}' WHERE id = '$commentId'",
-                                    );
-                                  } else {
-                                    await AppUtils.makeRequests(
-                                      "query",
-                                      "INSERT INTO Comments VALUES(NULL, '${commentController.text}', '${prefx.getString("UID")}', '${Provider.of<AppProvider>(context, listen: false).itemId.toString()}', '${DateTime.now()}')",
-                                    );
-                                  }
 
-                                  commentController.clear();
-                                  getComments();
+                                  if (prefx.getString("UID") != null) {
+                                    if (commentx.isNotEmpty) {
+                                      await AppUtils.makeRequests(
+                                        "query",
+                                        "UPDATE Comments SET comment = '${commentController.text}' WHERE id = '$commentId'",
+                                      );
+                                    } else {
+                                      await AppUtils.makeRequests(
+                                        "query",
+                                        "INSERT INTO Comments VALUES(NULL, '${commentController.text}', '${prefx.getString("UID")}', '${Provider.of<AppProvider>(context, listen: false).itemId.toString()}', '${DateTime.now()}')",
+                                      );
+                                    }
+
+                                    commentController.clear();
+                                    getComments();
+                                  } else {
+                                    context.go('/login');
+                                  }
                                 },
                                 icon: Icon(Iconsax.send_1),
                               ),
