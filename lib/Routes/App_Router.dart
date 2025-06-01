@@ -8,6 +8,7 @@ import 'package:mazo/Screens/Checkout.dart';
 import 'package:mazo/Screens/Checkout_Summary.dart';
 import 'package:mazo/Screens/Home/Home_Screen_Profile.dart';
 import 'package:mazo/Screens/PaymentSuccess.dart';
+import 'package:mazo/Screens/ProductScreen.dart';
 import 'package:mazo/Screens/Profile/User_Profile.dart';
 import 'package:mazo/Screens/SearchScreen.dart';
 import 'package:mazo/Screens/Shipping_Orders.dart';
@@ -33,6 +34,15 @@ final GoRouter router = GoRouter(
           mobile: params['mobile']!,
           otp: int.parse(params['otp'].toString()),
         );
+      },
+    ),
+
+    GoRoute(
+      path: '/product',
+      builder: (context, state) {
+        final id = state.uri.queryParameters['id'];
+        print('وصل للـ Route بتاع المنتج، ID = $id');
+        return HomeScreen(productId: id);
       },
     ),
 

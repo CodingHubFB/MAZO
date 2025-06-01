@@ -63,6 +63,6 @@ class DefaultFirebaseOptions {
     messagingSenderId: '326760304171',
     projectId: 'mazo-4ea7b',
     storageBucket: 'mazo-4ea7b.firebasestorage.app',
-    iosBundleId: 'com.example.mazo',
+    iosBundleId: 'com.mazo.shorts',
   );
 }

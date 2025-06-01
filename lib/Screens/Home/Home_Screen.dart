@@ -1,11 +1,13 @@
 import 'dart:async';
 
+import 'package:flutter/services.dart';
 import 'package:mazo/BottomSheets/CommentsBottomSheet.dart';
 import 'package:mazo/BottomSheets/ItemMoreBottomSheet.dart';
 import 'package:mazo/BottomSheets/MediaPickerBottomSheet.dart';
 import 'package:mazo/BottomSheets/CartBottomSheet.dart';
 import 'package:mazo/Core/Theme.dart';
 import 'package:mazo/Core/Utils.dart';
+import 'package:mazo/Routes/App_Router.dart';
 import 'package:mazo/Screens/SearchScreen.dart';
 import 'package:mazo/provider/App_Provider.dart';
 import 'package:flutter/material.dart';
@@ -18,7 +20,8 @@ import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final String? productId;
+  const HomeScreen({super.key, this.productId});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -191,10 +194,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Future getItems() async {
     var itemsx = await AppUtils.makeRequests(
       "fetch",
-      "SELECT * FROM Items WHERE visibility = 'Public'",
+      "SELECT * FROM Items WHERE visibility = 'Public' ${widget.productId != null ? "AND id = '${widget.productId}'" : ""}",
     );
-
-    // getCurrentMerchant();
 
     if (itemsx != null && itemsx.isNotEmpty && itemsx is List) {
       itemsx.shuffle();
@@ -246,10 +247,22 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  static const platform = MethodChannel("mazo.channel");
   @override
   void initState() {
     super.initState();
     getItems();
+
+    platform.setMethodCallHandler((call) async {
+      if (call.method == "openProduct") {
+        final productId = call.arguments.toString();
+        print("فتح المنتج ID: $productId");
+
+        Future.delayed(Duration(milliseconds: 500), () {
+          router.go('/product?id=$productId');
+        });
+      }
+    });
   }
 
   void initializeVideoController(
@@ -832,19 +845,13 @@ class _HomeScreenState extends State<HomeScreen> {
                           color: Colors.white,
                           size: 32,
                         ),
-                        onPressed: () {
-                          var currentMedia =
-                              items[index]['media']
-                                  .toString()
-                                  .split(',')
-                                  .map((e) => e.trim())
-                                  .toList()[index];
-                          String mediaUrl =
-                              "https://pos7d.site/MAZO/uploads/Items/${items[index]['id']}/$currentMedia";
-                          String shareMessage =
-                              "شوف المنتج ده على MAZO 👇\n$mediaUrl";
+                        onPressed: () async {
+                          final link =
+                              'https://pos7d.site/MAZO/product?id=${items[index]['id']}';
                           SharePlus.instance.share(
-                            ShareParams(text: shareMessage),
+                            ShareParams(
+                              text: 'شوف المنتج ده على MAZO 👇\n$link',
+                            ),
                           );
                         },
                       ),
@@ -971,76 +978,3 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 }
-
-//                   return Stack(
-//                     children: [
-//                       SizedBox(
-//                         height: MediaQuery.of(context).size.height,
-//                         width: MediaQuery.of(context).size.width,
-//                         child:
-//                             isVideoFile
-//                                 ? (videoControllers[index] != null &&
-//                                         videoControllers[index]![jndex] != null
-//                                     ? GestureDetector(
-//                                       onTap: () {
-//                                         final controller =
-//                                             videoControllers[index]?[jndex];
-//                                         togglePlayPause(controller);
-//                                       },
-//                                       child: Stack(
-//                                         alignment: Alignment.center,
-//                                         children: [
-//                                           BetterPlayer(
-//                                             controller:
-//                                                 videoControllers[index]![jndex]!,
-//                                           ),
-
-//                                           // Likes
-//                                           AnimatedOpacity(
-//                                             duration: Duration(
-//                                               milliseconds: 300,
-//                                             ),
-//                                             opacity:
-//                                                 showCenterIconLikes ? 1.0 : 0.0,
-//                                             child: AnimatedScale(
-//                                               duration: Duration(
-//                                                 milliseconds: 300,
-//                                               ),
-//                                               scale:
-//                                                   showCenterIconLikes
-//                                                       ? 1.5
-//                                                       : 0.0,
-//                                               curve: Curves.easeOutBack,
-//                                               child: Icon(
-//                                                 centerIconLikes,
-//                                                 size: 60,
-//                                                 color: Colors.white.withOpacity(
-//                                                   0.9,
-//                                                 ),
-//                                                 shadows: [
-//                                                   Shadow(
-//                                                     blurRadius: 12,
-//                                                     color: Colors.black87,
-//                                                     offset: Offset(0, 2),
-//                                                   ),
-//                                                 ],
-//                                               ),
-//                                             ),
-//                                           ),
-//                                         ],
-//                                       ),
-//                                     )
-//                                     : const Center(
-//                                       child: SpinKitCircle(color: Colors.white),
-//                                     ))
-//                                 : Image.network(
-//                                   "https://pos7d.site/MAZO/uploads/Items/${items[index]['id']}/$mediaUrl",
-//                                   fit: BoxFit.cover,
-//                                 ),
-//                       ),
-//                     ],
-//                   );
-//                 },
-//               ),
-
-//               // محتوى الفيديو فوق (مثلاً اسم المستخدم والوصف)

@@ -1,3 +1,6 @@
+import 'package:flutter_stripe/flutter_stripe.dart';
+import 'package:go_router/go_router.dart';
+import 'package:mazo/Core/ApiKeys.dart';
 import 'package:mazo/firebase_options.dart';
 import 'package:mazo/provider/App_Provider.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -13,12 +16,24 @@ void main() async {
     DeviceOrientation.portraitDown,
     DeviceOrientation.portraitUp,
   ]);
+  Stripe.publishableKey = ApiKeys.publishableKey;
+  await Stripe.instance.applySettings();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {

@@ -9,7 +9,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.mazo"
+    namespace = "com.mazo.shorts"
     compileSdk = 35
     ndkVersion = "27.0.12077973"
 
@@ -24,10 +24,10 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.mazo"
+        applicationId = "com.mazo.shorts"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
+        minSdk = 21
         targetSdk = flutter.targetSdkVersion
         multiDexEnabled = true
         versionCode = flutter.versionCode
