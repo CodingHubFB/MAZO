@@ -1,11 +1,12 @@
+import 'package:mazo/Core/PushNotificationsServiceOrders.dart';
 import 'package:mazo/Core/StripeIntegration.dart';
 import 'package:mazo/Core/Utils.dart';
-import 'package:mazo/Screens/TabPaymentWebView.dart';
 import 'package:mazo/Widgets/Button_Widget.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:mazo/provider/App_Provider.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class CheckoutScreen extends StatefulWidget {
@@ -109,16 +110,161 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: GestureDetector(
         onTap: () async {
+          SharedPreferences prefx = await SharedPreferences.getInstance();
+
           if (isSelected == 1) {
+            // طريقة الدفع: عند الاستلام
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  content: Row(
+                    children: [
+                      CircularProgressIndicator(),
+                      SizedBox(width: 20),
+                      Expanded(
+                        child: Text(
+                          "جارٍ تأكيد الدفع ومعالجة الطلب...",
+                          style: TextStyle(fontSize: 16),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            );
+
+            // هات البائعين الفريدين
+            final Set<dynamic> sellerUids =
+                cartOrders.map((order) => order['uid']).toSet();
+
+            // هات اسم العميل
+            var customerName = await AppUtils.makeRequests(
+              "fetch",
+              "SELECT Fullname FROM Users WHERE uid = '${prefx.getString("UID")}'",
+            );
+            if (customerName is Map<String, dynamic>) {
+              customerName = [customerName];
+            }
+
+            for (var sellerUid in sellerUids) {
+              // فلترة المنتجات الخاصة بالبائع ده فقط
+              final sellerProducts =
+                  cartOrders.where((e) => e['uid'] == sellerUid).toList();
+
+              // إضافة Order جديد للبائع
+              await AppUtils.makeRequests(
+                "query",
+                "INSERT INTO Orders VALUES (NULL, '$sellerUid', '${prefx.getString("UID")}', '${prefx.getString("OID")}', '${Provider.of<AppProvider>(context, listen: false).shipId}', '${DateTime.now().toString()}', 'pending')",
+              );
+
+              // ابعت إشعار للبائع
+              var results = await AppUtils.makeRequests(
+                "fetch",
+                "SELECT fcm_token FROM Users WHERE uid = '$sellerUid'",
+              );
+
+              if (results is Map<String, dynamic>) {
+                results = [results];
+              }
+
+              for (var result in results) {
+                PushNotificationServiceOrders.sendNotificationToUser(
+                  result['fcm_token'],
+                  "New Order from a Customer (${customerName[0]['Fullname']})",
+                  "One of your products has been purchased. Please check the order details and deliver it as soon as possible.",
+                  prefx
+                      .getString("OID")
+                      .toString(), // ده ممكن تستبدله بالـ order_id الجديد لو محتاجه
+                );
+              }
+            }
+
+            context.go('/paymentSuccess');
           } else {
+            // طريقة الدفع: كارت
             String result = await PaymentManager.makePayment(
               (finalTotalFinish * 100).toInt(),
               "qar",
             );
+
             if (result == 'Succeeded') {
               ScaffoldMessenger.of(
                 context,
               ).showSnackBar(SnackBar(content: Text("حالة الدفع: $result")));
+
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    content: Row(
+                      children: [
+                        CircularProgressIndicator(),
+                        SizedBox(width: 20),
+                        Expanded(
+                          child: Text(
+                            "جارٍ تأكيد الدفع ومعالجة الطلب...",
+                            style: TextStyle(fontSize: 16),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              );
+
+              // هات البائعين الفريدين
+              final Set<dynamic> sellerUids =
+                  cartOrders.map((order) => order['uid']).toSet();
+
+              // هات اسم العميل
+              var customerName = await AppUtils.makeRequests(
+                "fetch",
+                "SELECT Fullname FROM Users WHERE uid = '${prefx.getString("UID")}'",
+              );
+              if (customerName is Map<String, dynamic>) {
+                customerName = [customerName];
+              }
+
+              for (var sellerUid in sellerUids) {
+                // فلترة المنتجات الخاصة بالبائع ده فقط
+                final sellerProducts =
+                    cartOrders.where((e) => e['uid'] == sellerUid).toList();
+
+                // إضافة Order جديد للبائع
+                await AppUtils.makeRequests(
+                  "query",
+                  "INSERT INTO Orders VALUES (NULL, '$sellerUid', '${prefx.getString("UID")}', '${prefx.getString("OID")}', '${Provider.of<AppProvider>(context, listen: false).shipId}', '${DateTime.now().toString()}', 'pending')",
+                );
+
+                // ابعت إشعار للبائع
+                var results = await AppUtils.makeRequests(
+                  "fetch",
+                  "SELECT fcm_token FROM Users WHERE uid = '$sellerUid'",
+                );
+
+                if (results is Map<String, dynamic>) {
+                  results = [results];
+                }
+
+                for (var result in results) {
+                  PushNotificationServiceOrders.sendNotificationToUser(
+                    result['fcm_token'],
+                    "New Order from a Customer (${customerName[0]['Fullname']})",
+                    "One of your products has been purchased. Please check the order details and deliver it as soon as possible.",
+                    prefx.getString("OID").toString(),
+                  );
+                }
+              }
+
               context.go('/paymentSuccess');
             } else {
               ScaffoldMessenger.of(
@@ -127,6 +273,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             }
           }
         },
+
         child: SizedBox(height: 60, child: ButtonWidget(btnText: "Pay")),
       ),
     );

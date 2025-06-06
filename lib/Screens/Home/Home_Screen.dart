@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:audioplayers/audioplayers.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/services.dart';
 import 'package:mazo/BottomSheets/CommentsBottomSheet.dart';
 import 'package:mazo/BottomSheets/ItemMoreBottomSheet.dart';
@@ -33,6 +35,9 @@ class _HomeScreenState extends State<HomeScreen> {
   bool showCenterIcon = false;
   IconData centerIcon = Iconsax.play;
   bool showCenterIconLikes = false;
+  double likeIconScale = 0.0;
+  double likeIconOpacity = 0.0;
+
   IconData centerIconLikes = Iconsax.like_1;
   Duration? videoDuration;
   Duration? videoPosition;
@@ -42,12 +47,35 @@ class _HomeScreenState extends State<HomeScreen> {
   final Map<String, Duration> watchedDurations = {};
   final Map<String, Timer> watchTimers = {};
   String qtt = "";
+  String uid = '';
+  bool isFollowed = false;
+  String lang = "eng";
+  List languages = [];
+
+  Future getLang() async {
+    SharedPreferences prefx = await SharedPreferences.getInstance();
+
+    setState(() {
+      lang = prefx.getString("Lang")!;
+      getLangDB();
+    });
+  }
+
+  Future getLangDB() async {
+    var results = await AppUtils.makeRequests(
+      "fetch",
+      "SELECT $lang FROM Languages ",
+    );
+    setState(() {
+      languages = results;
+    });
+  }
 
   Future getCartQtt(itemId) async {
     SharedPreferences prefx = await SharedPreferences.getInstance();
     var cartQTT = await AppUtils.makeRequests(
       "fetch",
-      "SELECT qtt FROM Cart WHERE user_id = '${prefx.getString("UID")}' AND item_id = '$itemId' AND order_id = '${prefx.getString("OID")}' ",
+      "SELECT qtt FROM Cart WHERE ${prefx.getString('UID') != null ? 'user_id = "${prefx.getString("UID")}" AND' : ''}  item_id = '$itemId' ${prefx.getString('OID') != null ? 'AND order_id = "${prefx.getString("OID")}" ' : ''} ",
     );
 
     setState(() {
@@ -59,7 +87,51 @@ class _HomeScreenState extends State<HomeScreen> {
       } else {
         qtt = "0";
       }
+      if (prefx.getString("UID") != null) {
+        uid = prefx.getString("UID")!;
+      }
     });
+  }
+
+  int cartCount = 0;
+  int commentsCount = 0;
+
+  Future getCartCount(merchid) async {
+    SharedPreferences prefx = await SharedPreferences.getInstance();
+
+    if (merchid != null && prefx.getString("OID") != null) {
+      var result = await AppUtils.makeRequests(
+        "fetch",
+        "SELECT qtt FROM Cart WHERE item_id = '$merchid' AND order_id = '${prefx.getString("OID")}'",
+      );
+
+      setState(() {
+        if (result[0] != null) {
+          cartCount = int.parse(result[0]['qtt'].toString());
+        } else {
+          cartCount = 0;
+        }
+      });
+    }
+  }
+
+  Future getCommentsCount(itmid) async {
+    SharedPreferences prefx = await SharedPreferences.getInstance();
+
+    if (itmid != null && prefx.getString("UID") != null) {
+      var result = await AppUtils.makeRequests(
+        "fetch",
+        "SELECT COUNT(id) as commcount FROM Comments WHERE item_id = '$itmid'",
+      );
+
+      setState(() {
+        if (result[0] != null) {
+          commentsCount = int.parse(result[0]['commcount'].toString());
+        } else {
+          commentsCount = 0;
+        }
+      });
+    }
   }
 
   void playVideo(int itemIndex, int mediaIndex) {
@@ -109,17 +181,22 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  void toggleLikeUnlikes() {
+  final player = AudioPlayer();
+  void toggleLikeUnlikes() async {
     setState(() {
       showCenterIconLikes = true;
       centerIconLikes = Iconsax.like_1;
+      likeIconScale = 1.2;
+      likeIconOpacity = 1.0;
     });
+    await player.play(AssetSource('sounds/like.mp3'));
 
-    // إخفاء الأيقونة بعد 800ms
     Future.delayed(Duration(milliseconds: 800), () {
       if (mounted) {
         setState(() {
           showCenterIconLikes = false;
+          likeIconScale = 0.0;
+          likeIconOpacity = 0.0;
         });
       }
     });
@@ -133,7 +210,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   List items = [];
   String countLikes = "";
+  String countShares = "";
   String userLIkes = "";
+  String userShares = "";
 
   bool isVideo(String url) {
     return url.toLowerCase().endsWith(".mp4") ||
@@ -169,6 +248,16 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  Future getCountShares(itmid) async {
+    var itemCount = await AppUtils.makeRequests(
+      "fetch",
+      "SELECT COUNT(id) as shares FROM Shares WHERE item_id = '$itmid'",
+    );
+    setState(() {
+      countShares = itemCount[0]['shares'];
+    });
+  }
+
   Future getCurrentMerchant(userId) async {
     var currentUser = await AppUtils.makeRequests(
       "fetch",
@@ -188,6 +277,17 @@ class _HomeScreenState extends State<HomeScreen> {
     );
     setState(() {
       userLIkes = itemCount[0]['likes'];
+    });
+  }
+
+  Future getUserShare(itmid) async {
+    SharedPreferences prefx = await SharedPreferences.getInstance();
+    var itemCount = await AppUtils.makeRequests(
+      "fetch",
+      "SELECT COUNT(id) as shares FROM Shares WHERE user_id = '${prefx.getString("UID")}' AND item_id = '$itmid'",
+    );
+    setState(() {
+      userShares = itemCount[0]['shares'];
     });
   }
 
@@ -244,6 +344,12 @@ class _HomeScreenState extends State<HomeScreen> {
       getCartQtt(firstItem['id']);
       getCountLikes(firstItem['id']);
       getUserLike(firstItem['id']);
+      getCountShares(firstItem['id']);
+      print(firstItem['id']);
+      getUserShare(firstItem['id']);
+      getCartQtt(firstItem['id']);
+      getCartCount(firstItem['id']);
+      getCommentsCount(firstItem['id']);
     }
   }
 
@@ -251,6 +357,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    getLang();
     getItems();
 
     platform.setMethodCallHandler((call) async {
@@ -366,37 +473,15 @@ class _HomeScreenState extends State<HomeScreen> {
     final videoPosition =
         currentController?.videoPlayerController?.value.position;
 
-    return Scaffold(
-      backgroundColor: Colors.black,
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        clipBehavior: Clip.none,
-        backgroundColor: Colors.transparent,
-        title: Container(
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.2),
-                blurRadius: 10,
-                offset: Offset(0, 0),
-              ),
-            ],
-          ),
-          child: IconButton(
-            icon: const Icon(Iconsax.add_circle, color: Colors.white, size: 25),
-            onPressed: () async {
-              SharedPreferences prefx = await SharedPreferences.getInstance();
-              if (prefx.getString("UID") != null) {
-                MediaPickerBottomSheet.showPrimaryOptions(context, true);
-              } else {
-                context.go('/login');
-              }
-            },
-          ),
-        ),
-        actions: [
-          Container(
+    return Directionality(
+      textDirection: lang == "arb" ? TextDirection.rtl : TextDirection.ltr,
+      child: Scaffold(
+        backgroundColor: Colors.black,
+        extendBodyBehindAppBar: true,
+        appBar: AppBar(
+          clipBehavior: Clip.none,
+          backgroundColor: Colors.transparent,
+          title: Container(
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               boxShadow: [
@@ -409,571 +494,811 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             child: IconButton(
               icon: const Icon(
-                Iconsax.search_normal,
+                Iconsax.add_circle,
                 color: Colors.white,
                 size: 25,
               ),
-              onPressed: () {
-                openSearch();
+              onPressed: () async {
+                SharedPreferences prefx = await SharedPreferences.getInstance();
+                if (prefx.getString("UID") != null) {
+                  MediaPickerBottomSheet.showPrimaryOptions(context, true);
+                } else {
+                  context.go('/login');
+                }
               },
             ),
           ),
-          Container(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
-                  blurRadius: 10,
-                  offset: Offset(0, 0),
+          actions: [
+            Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 10,
+                    offset: Offset(0, 0),
+                  ),
+                ],
+              ),
+              child: IconButton(
+                icon: const Icon(
+                  Iconsax.search_normal,
+                  color: Colors.white,
+                  size: 25,
                 ),
-              ],
-            ),
-            child: IconButton(
-              icon: const Icon(
-                Iconsax.more_circle,
-                color: Colors.white,
-                size: 25,
-              ),
-              onPressed: () {
-                SimpleMoreItems.showItemDetails(context);
-              },
-            ),
-          ),
-        ],
-      ),
-      body: PageView.builder(
-        controller: _pageController,
-        scrollDirection: Axis.vertical,
-        itemCount: items.length,
-        onPageChanged: (index) async {
-          SharedPreferences prefx = await SharedPreferences.getInstance();
-
-          // وقف الفيديو اللي فات
-          disposeVideoController(_currentIndex, currentJndex);
-          if (activeItemIndex != 0 || activeMediaIndex != 0) {
-            videoControllers[activeItemIndex]?[activeMediaIndex]?.pause();
-          }
-
-          // حدث المؤشرات
-          setState(() {
-            activeItemIndex = index;
-            activeMediaIndex = 0;
-            _currentIndex = index;
-            currentJndex = 0;
-          });
-
-          // لو وصلنا لنهاية القائمة، هات بيانات تانية
-          if (index >= items.length - 1) {
-            await getItems();
-          }
-
-          final item = items[index];
-          final mediaList =
-              item['media'].toString().split(',').map((e) => e.trim()).toList();
-          final firstMedia = mediaList[0];
-
-          // شغل الفيديو الأول لو كان فيديو
-          if (firstMedia.endsWith('.mp4')) {
-            initializeVideoController(
-              "https://pos7d.site/MAZO/uploads/Items/${item['id']}/$firstMedia",
-              index,
-              0,
-            );
-            playVideo(index, 0);
-          }
-
-          // باقي الطلبات
-          Provider.of<AppProvider>(context, listen: false).setPutItems(items);
-          Provider.of<AppProvider>(
-            context,
-            listen: false,
-          ).setItemId(int.parse(item['id']));
-          Provider.of<AppProvider>(
-            context,
-            listen: false,
-          ).setCurrentId(index.toString());
-          Provider.of<AppProvider>(
-            context,
-            listen: false,
-          ).setCommentSwitch(item['comments']);
-          Provider.of<AppProvider>(
-            context,
-            listen: false,
-          ).setCurrentUsers(item['uid']);
-
-          await AppUtils.makeRequestsViews(
-            "query",
-            "UPDATE Items SET Views = Views + 1 WHERE id = '${item['id']}'",
-          );
-
-          getCartQtt(item['id']);
-          getCountLikes(item['id']);
-          getUserLike(item['id']);
-          getCurrentMerchant(item['uid']);
-        },
-        itemBuilder: (context, index) {
-          return Stack(
-            children: [
-              PageView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: items[index]['media'].toString().split(',').length,
-                onPageChanged: (mediaIndex) async {
-                  // وقف الفيديو اللي فات
-                  disposeVideoController(index, currentJndex);
-                  videoControllers[activeItemIndex]?[activeMediaIndex]?.pause();
-
-                  final mediaList =
-                      items[index]['media']
-                          .toString()
-                          .split(',')
-                          .map((e) => e.trim())
-                          .toList();
-                  final currentMedia = mediaList[mediaIndex];
-
-                  setState(() {
-                    activeMediaIndex = mediaIndex;
-                    currentJndex = mediaIndex;
-                  });
-
-                  if (currentMedia.endsWith('.mp4')) {
-                    initializeVideoController(
-                      "https://pos7d.site/MAZO/uploads/Items/${items[index]['id']}/$currentMedia",
-                      index,
-                      mediaIndex,
-                    );
-                    playVideo(index, mediaIndex);
-                  }
+                onPressed: () {
+                  openSearch();
                 },
-                itemBuilder: (context, mediaIndex) {
-                  final mediaList =
-                      items[index]['media']
-                          .toString()
-                          .split(',')
-                          .map((e) => e.trim())
-                          .toList();
-                  final mediaUrl = mediaList[mediaIndex];
-                  final isVideo = mediaUrl.endsWith('.mp4');
-                  final isActive =
-                      index == activeItemIndex &&
-                      mediaIndex == activeMediaIndex;
-
-                  if (isVideo && isActive) {
-                    final controller = videoControllers[index]?[mediaIndex];
-
-                    if (controller == null ||
-                        !controller.isVideoInitialized()!) {
-                      return Center(
-                        child: SpinKitChasingDots(
-                          color: AppTheme.backgroundColor,
-                        ),
+              ),
+            ),
+            Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 10,
+                    offset: Offset(0, 0),
+                  ),
+                ],
+              ),
+              child: IconButton(
+                icon: const Icon(
+                  Iconsax.more_circle,
+                  color: Colors.white,
+                  size: 25,
+                ),
+                onPressed: () {
+                  showModalBottomSheet(
+                    context: context,
+                    backgroundColor: Colors.transparent,
+                    builder: (BuildContext ctx) {
+                      return Directionality(
+                        textDirection: TextDirection.rtl,
+                        child: const moreBottomSheet(),
                       );
-                    }
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+        body: PageView.builder(
+          controller: _pageController,
+          scrollDirection: Axis.vertical,
+          itemCount: items.length,
+          onPageChanged: (index) async {
+            SharedPreferences prefx = await SharedPreferences.getInstance();
 
-                    return GestureDetector(
-                      onTap: () {
-                        if (controller.isPlaying()!) {
-                          controller.pause();
-                          setState(() {
-                            showCenterIcon = true;
-                            centerIcon = Iconsax.pause_circle;
-                          });
-                        } else {
-                          controller.play();
-                          setState(() {
-                            showCenterIcon = true;
-                            centerIcon = Iconsax.play_circle;
-                          });
+            // وقف الفيديو اللي فات
+            disposeVideoController(_currentIndex, currentJndex);
+            if (activeItemIndex != 0 || activeMediaIndex != 0) {
+              videoControllers[activeItemIndex]?[activeMediaIndex]?.pause();
+            }
+
+            // حدث المؤشرات
+            setState(() {
+              activeItemIndex = index;
+              activeMediaIndex = 0;
+              _currentIndex = index;
+              currentJndex = 0;
+            });
+
+            // لو وصلنا لنهاية القائمة، هات بيانات تانية
+            if (index >= items.length - 1) {
+              await getItems();
+            }
+
+            final item = items[index];
+            final mediaList =
+                item['media']
+                    .toString()
+                    .split(',')
+                    .map((e) => e.trim())
+                    .toList();
+            final firstMedia = mediaList[0];
+
+            // شغل الفيديو الأول لو كان فيديو
+            if (firstMedia.endsWith('.mp4')) {
+              initializeVideoController(
+                "https://pos7d.site/MAZO/uploads/Items/${item['id']}/$firstMedia",
+                index,
+                0,
+              );
+              playVideo(index, 0);
+            }
+
+            // باقي الطلبات
+            Provider.of<AppProvider>(context, listen: false).setPutItems(items);
+            Provider.of<AppProvider>(
+              context,
+              listen: false,
+            ).setItemId(int.parse(item['id']));
+            Provider.of<AppProvider>(
+              context,
+              listen: false,
+            ).setCurrentId(index.toString());
+            Provider.of<AppProvider>(
+              context,
+              listen: false,
+            ).setCommentSwitch(item['comments']);
+            if (item['uid'] != null) {
+              Provider.of<AppProvider>(
+                context,
+                listen: false,
+              ).setCurrentUsers(item['uid']);
+            }
+
+            await AppUtils.makeRequestsViews(
+              "query",
+              "UPDATE Items SET Views = Views + 1 WHERE id = '${item['id']}'",
+            );
+            print(item['id']);
+            getCartQtt(item['id']);
+            getCountLikes(item['id']);
+            getUserLike(item['id']);
+            setState(() {
+              getCountShares(item['id']);
+              getUserShare(item['id']);
+              getCartQtt(item['id']);
+              getCartCount(item['id']);
+              getCommentsCount(item['id']);
+            });
+            getCurrentMerchant(item['uid']);
+            setState(() {
+              isFollowed = false;
+            });
+          },
+          itemBuilder: (context, index) {
+            return RefreshIndicator(
+              onRefresh: () => getItems(),
+              child: Stack(
+                children: [
+                  PageView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount:
+                        items[index]['media'].toString().split(',').length,
+                    onPageChanged: (mediaIndex) async {
+                      // وقف الفيديو اللي فات
+                      disposeVideoController(index, currentJndex);
+                      videoControllers[activeItemIndex]?[activeMediaIndex]
+                          ?.pause();
+
+                      final mediaList =
+                          items[index]['media']
+                              .toString()
+                              .split(',')
+                              .map((e) => e.trim())
+                              .toList();
+                      final currentMedia = mediaList[mediaIndex];
+
+                      setState(() {
+                        activeMediaIndex = mediaIndex;
+                        currentJndex = mediaIndex;
+                      });
+
+                      if (currentMedia.endsWith('.mp4')) {
+                        initializeVideoController(
+                          "https://pos7d.site/MAZO/uploads/Items/${items[index]['id']}/$currentMedia",
+                          index,
+                          mediaIndex,
+                        );
+                        playVideo(index, mediaIndex);
+                      }
+                    },
+                    itemBuilder: (context, mediaIndex) {
+                      final mediaList =
+                          items[index]['media']
+                              .toString()
+                              .split(',')
+                              .map((e) => e.trim())
+                              .toList();
+                      final mediaUrl = mediaList[mediaIndex];
+                      final isVideo = mediaUrl.endsWith('.mp4');
+                      final isActive =
+                          index == activeItemIndex &&
+                          mediaIndex == activeMediaIndex;
+
+                      if (isVideo && isActive) {
+                        final controller = videoControllers[index]?[mediaIndex];
+
+                        if (controller == null ||
+                            !controller.isVideoInitialized()!) {
+                          return Center(
+                            child: SpinKitChasingDots(
+                              color: AppTheme.backgroundColor,
+                            ),
+                          );
                         }
 
-                        // اختفي بعد ثواني
-                        Future.delayed(Duration(seconds: 1), () {
-                          setState(() {
-                            showCenterIcon = false;
-                          });
-                        });
-                      },
-                      child: Stack(
-                        alignment: Alignment.center,
+                        return GestureDetector(
+                          onTap: () {
+                            if (controller.isPlaying()!) {
+                              controller.pause();
+                              setState(() {
+                                showCenterIcon = true;
+                                centerIcon = Iconsax.pause_circle;
+                              });
+                            } else {
+                              controller.play();
+                              setState(() {
+                                showCenterIcon = true;
+                                centerIcon = Iconsax.play_circle;
+                              });
+                            }
+
+                            // اختفي بعد ثواني
+                            Future.delayed(Duration(seconds: 1), () {
+                              setState(() {
+                                showCenterIcon = false;
+                              });
+                            });
+                          },
+                          child: AbsorbPointer(
+                            absorbing: true,
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                BetterPlayer(controller: controller),
+                                if (showCenterIcon)
+                                  AnimatedOpacity(
+                                    duration: Duration(milliseconds: 300),
+                                    opacity: showCenterIcon ? 1.0 : 0.0,
+                                    child: AnimatedScale(
+                                      duration: Duration(milliseconds: 300),
+                                      scale: showCenterIcon ? 1.5 : 0.0,
+                                      curve: Curves.easeOutBack,
+                                      child: Icon(
+                                        centerIcon,
+                                        size: 60,
+                                        color: Colors.white.withOpacity(0.9),
+                                        shadows: [
+                                          Shadow(
+                                            blurRadius: 12,
+                                            color: Colors.black87,
+                                            offset: Offset(0, 2),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        );
+                      } else if (isVideo) {
+                        return Container(
+                          color: Colors.black,
+                          child: Center(
+                            child: Icon(
+                              Icons.play_circle_fill,
+                              size: 64,
+                              color: Colors.white,
+                            ),
+                          ),
+                        );
+                      } else {
+                        return Image.network(
+                          "https://pos7d.site/MAZO/uploads/Items/${items[index]['id']}/$mediaUrl",
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                          height: double.infinity,
+                        );
+                      }
+                    },
+                  ),
+                  Positioned.fill(
+                    child: Center(
+                      child: AnimatedOpacity(
+                        duration: Duration(milliseconds: 300),
+                        opacity: likeIconOpacity,
+                        child: AnimatedScale(
+                          duration: Duration(milliseconds: 400),
+                          scale: likeIconScale,
+                          curve: Curves.easeOutBack,
+                          child: Icon(
+                            centerIconLikes,
+                            size: 120,
+                            color: Colors.redAccent.withOpacity(0.9),
+                            shadows: [
+                              Shadow(
+                                color: Colors.black.withOpacity(0.4),
+                                blurRadius: 12,
+                                offset: Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  Positioned(
+                    left: 0,
+                    bottom:
+                        videoDuration != null && videoPosition != null ? 30 : 0,
+                    right: 0, // عشان العرض ما يبقاش محدود
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.transparent,
+                            Colors.black.withOpacity(0.7),
+                            Colors.black.withOpacity(0.9),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          BetterPlayer(controller: controller),
-                          if (showCenterIcon)
-                            AnimatedOpacity(
-                              duration: Duration(milliseconds: 300),
-                              opacity: showCenterIcon ? 1.0 : 0.0,
-                              child: AnimatedScale(
-                                duration: Duration(milliseconds: 300),
-                                scale: showCenterIcon ? 1.5 : 0.0,
-                                curve: Curves.easeOutBack,
-                                child: Icon(
-                                  centerIcon,
-                                  size: 60,
-                                  color: Colors.white.withOpacity(0.9),
-                                  shadows: [
-                                    Shadow(
-                                      blurRadius: 12,
-                                      color: Colors.black87,
-                                      offset: Offset(0, 2),
+                          currentUsers.isNotEmpty
+                              ? GestureDetector(
+                                onTap: () {
+                                  AppUtils.sNavigateToReplace(
+                                    context,
+                                    '/UserProfile',
+                                    {'userId': currentUsers[0]['uid']},
+                                  );
+                                },
+                                child: Row(
+                                  children: [
+                                    CircleAvatar(
+                                      backgroundImage: NetworkImage(
+                                        "https://pos7d.site/MAZO/${currentUsers[0]['urlAvatar']}",
+                                      ),
+                                    ),
+                                    SizedBox(width: 10),
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          currentUsers[0]['Fullname'],
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                        Visibility(
+                                          visible:
+                                              uid == currentUsers[0]['uid']
+                                                  ? false
+                                                  : true,
+                                          child: GestureDetector(
+                                            onTap: () async {
+                                              if (uid != "") {
+                                                setState(() {
+                                                  isFollowed = !isFollowed;
+                                                });
+                                                String? fcmToken =
+                                                    await FirebaseMessaging
+                                                        .instance
+                                                        .getToken();
+                                                print(
+                                                  "🔥 FCM Token: $fcmToken",
+                                                );
+                                                var result =
+                                                    await AppUtils.makeRequests(
+                                                      "fetch",
+                                                      "SELECT * FROM Followers WHERE user_token = '$fcmToken'",
+                                                    );
+
+                                                if (result[0] == null) {
+                                                  AppUtils.makeRequests(
+                                                    "query",
+                                                    "INSERT INTO Followers VALUES(NULL, '${currentUsers[0]['uid']}', '$fcmToken')",
+                                                  );
+                                                }
+                                              } else {
+                                                context.go('/login');
+                                              }
+                                            },
+                                            child: Container(
+                                              padding: EdgeInsets.symmetric(
+                                                horizontal: 10,
+                                                vertical: 5,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.circular(10),
+                                                color:
+                                                    isFollowed == false
+                                                        ? Colors.red
+                                                        : Colors.white,
+                                              ),
+                                              child: Text(
+                                                languages[51][lang],
+                                                style: TextStyle(
+                                                  color:
+                                                      isFollowed == false
+                                                          ? Colors.white
+                                                          : Colors.red,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ],
                                 ),
+                              )
+                              : Container(),
+                          SizedBox(height: 8),
+                          Text(
+                            items[index]['name'].toString(),
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            "${items[index]['price'].toString()} ${languages[53][lang]}",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            items[index]['description'].toString(),
+                            style: TextStyle(color: Colors.white70),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  // أزرار التفاعل
+                  Positioned(
+                    right: lang == 'eng' ? 16 : null,
+                    left: lang == 'arb' ? 16 : null,
+                    bottom: 130,
+                    child: Column(
+                      children: [
+                        Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.4),
+                                blurRadius: 6,
+                                offset: Offset(0, 2),
                               ),
+                            ],
+                          ),
+                          child: IconButton(
+                            icon: Icon(
+                              userLIkes != "0"
+                                  ? Iconsax.like_15
+                                  : Iconsax.like_1,
+                              color: Colors.white,
+                              size: 32,
                             ),
-                        ],
-                      ),
-                    );
-                  } else if (isVideo) {
-                    return Container(
-                      color: Colors.black,
-                      child: Center(
-                        child: Icon(
-                          Icons.play_circle_fill,
-                          size: 64,
-                          color: Colors.white,
-                        ),
-                      ),
-                    );
-                  } else {
-                    return Image.network(
-                      "https://pos7d.site/MAZO/uploads/Items/${items[index]['id']}/$mediaUrl",
-                      fit: BoxFit.cover,
-                      width: double.infinity,
-                      height: double.infinity,
-                    );
-                  }
-                },
-              ),
-              Positioned(
-                left: 0,
-                bottom: videoDuration != null && videoPosition != null ? 30 : 0,
-                right: 0, // عشان العرض ما يبقاش محدود
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.transparent,
-                        Colors.black.withOpacity(0.7),
-                        Colors.black.withOpacity(0.9),
-                      ],
-                    ),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      currentUsers.isNotEmpty
-                          ? GestureDetector(
-                            onTap: () {
-                              AppUtils.sNavigateToReplace(
-                                context,
-                                '/UserProfile',
-                                {'userId': currentUsers[0]['uid']},
-                              );
-                            },
-                            child: Row(
-                              children: [
-                                CircleAvatar(
-                                  backgroundImage: NetworkImage(
-                                    "https://pos7d.site/MAZO/${currentUsers[0]['urlAvatar']}",
-                                  ),
-                                ),
-                                SizedBox(width: 10),
-                                Text(
-                                  currentUsers[0]['Fullname'],
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          )
-                          : Container(),
-                      SizedBox(height: 8),
-                      Text(
-                        items[index]['name'],
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                      SizedBox(height: 8),
-                      Text(
-                        "${items[index]['price']} QAR",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                      SizedBox(height: 8),
-                      Text(
-                        items[index]['description'],
-                        style: TextStyle(color: Colors.white70),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+                            onPressed: () async {
+                              toggleLikeUnlikes();
+                              final prefs =
+                                  await SharedPreferences.getInstance();
+                              final uid = prefs.getString("UID");
+                              final itemId = items[index]['id'];
 
-              // أزرار التفاعل
-              Positioned(
-                right: 16,
-                bottom: 130,
-                child: Column(
-                  children: [
-                    Container(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.4),
-                            blurRadius: 6,
-                            offset: Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: IconButton(
-                        icon: Icon(
-                          userLIkes != "0" ? Iconsax.like_15 : Iconsax.like_1,
-                          color: Colors.white,
-                          size: 32,
-                        ),
-                        onPressed: () async {
-                          toggleLikeUnlikes();
-                          SharedPreferences prefx =
-                              await SharedPreferences.getInstance();
-                          if (prefx.getString("UID") != null) {
-                            var likes = await AppUtils.makeRequests(
-                              "fetch",
-                              "SELECT * FROM Likes WHERE user_id = '${prefx.getString("UID")}' AND item_id = '${items[index]['id']}' ",
-                            );
-                            if (likes[0] != null) {
-                              await AppUtils.makeRequests(
-                                "query",
-                                "DELETE FROM Likes WHERE user_id = '${prefx.getString("UID")}' AND item_id = '${items[index]['id']}'",
-                              );
-                            } else {
-                              await AppUtils.makeRequests(
-                                "query",
-                                "INSERT INTO Likes VALUES(NULL, '${prefx.getString("UID")}', '${items[index]['id']}', '${DateTime.now()}')",
-                              );
-                            }
-                            getCountLikes(items[index]['id']);
-                            getUserLike(items[index]['id']);
-                          } else {
-                            context.go('/login');
-                          }
-                        },
-                      ),
-                    ),
-                    SizedBox(height: 10),
-                    Text(
-                      countLikes,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        shadows: [
-                          Shadow(
-                            offset: Offset(0, 1),
-                            blurRadius: 10,
-                            color: Colors.black, // ظل خفيف وناعم
-                          ),
-                        ],
-                      ),
-                    ),
+                              if (uid == null) {
+                                context.go('/login');
+                                return;
+                              }
 
-                    SizedBox(height: 10),
-                    Container(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.4),
-                            blurRadius: 6,
-                            offset: Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: IconButton(
-                        icon: const Icon(
-                          Iconsax.message_text_1,
-                          color: Colors.white,
-                          size: 32,
-                        ),
-                        onPressed: () {
-                          showCommentsBottomSheet(context);
-                        },
-                      ),
-                    ),
-                    SizedBox(height: 10),
-                    Text(
-                      "0",
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        shadows: [
-                          Shadow(
-                            offset: Offset(0, 1),
-                            blurRadius: 10,
-                            color: Colors.black, // ظل خفيف وناعم
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(height: 10),
-                    Container(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.4),
-                            blurRadius: 6,
-                            offset: Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: IconButton(
-                        icon: const Icon(
-                          Iconsax.share,
-                          color: Colors.white,
-                          size: 32,
-                        ),
-                        onPressed: () async {
-                          final link =
-                              'https://pos7d.site/MAZO/product?id=${items[index]['id']}';
-                          SharePlus.instance.share(
-                            ShareParams(
-                              text: 'شوف المنتج ده على MAZO 👇\n$link',
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                    SizedBox(height: 10),
-                    Text(
-                      "0",
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        shadows: [
-                          Shadow(
-                            offset: Offset(0, 1),
-                            blurRadius: 10,
-                            color: Colors.black, // ظل خفيف وناعم
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(height: 10),
-                    Container(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.4),
-                            blurRadius: 6,
-                            offset: Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: IconButton(
-                        icon: Icon(
-                          qtt != "0"
-                              ? Iconsax.shopping_cart5
-                              : Iconsax.shopping_cart,
-                          color: Colors.white,
-                          size: 32,
-                        ),
-                        onPressed: () async {
-                          SharedPreferences prefx =
-                              await SharedPreferences.getInstance();
-                          if (prefx.getString("OID") != null) {
-                            var notCartAdded = await AppUtils.makeRequests(
-                              "fetch",
-                              "SELECT * FROM Cart WHERE user_id = '${prefx.getString("UID")}' AND item_id = '${items[index]['id']}' AND order_id = '${prefx.getString("OID")}' ",
-                            );
-                            if (notCartAdded[0] == null) {
-                              AppUtils.makeRequests(
-                                "query",
-                                "INSERT INTO Cart VALUES (NULL, '${prefx.getString("UID")}', '${items[index]['id']}', '0','${prefx.getString("OID")}')",
-                              );
-                              getCartQtt(items[index]['id']);
-                            }
+                              /// تفاعل بصري سريع فوري
+                              setState(() {
+                                userLIkes = userLIkes == "0" ? "1" : "0";
+                                showCenterIconLikes = true;
+                                centerIconLikes = Iconsax.like_1;
+                              });
 
-                            CartBottomSheet.showCart(
-                              context,
-                              notCartAdded[0]['id'],
-                              int.parse(qtt),
-                              (newQtt) {
-                                if (newQtt == 0) {
-                                  AppUtils.makeRequests(
+                              // أخفي الأيقونة بعد شوية
+                              Future.delayed(Duration(milliseconds: 800), () {
+                                if (mounted) {
+                                  setState(() {
+                                    showCenterIconLikes = false;
+                                  });
+                                }
+                              });
+
+                              try {
+                                /// شوف الحالة القديمة من السيرفر (ممكن تدي null)
+                                var likes = await AppUtils.makeRequests(
+                                  "fetch",
+                                  "SELECT * FROM Likes WHERE user_id = '$uid' AND item_id = '$itemId'",
+                                );
+
+                                if (likes is Map &&
+                                    likes.containsKey('message')) {
+                                  likes = [];
+                                }
+
+                                if (likes.isNotEmpty) {
+                                  await AppUtils.makeRequests(
                                     "query",
-                                    "DELETE FROM Cart WHERE id = '${notCartAdded[0]['id']}'",
+                                    "DELETE FROM Likes WHERE user_id = '$uid' AND item_id = '$itemId'",
+                                  );
+                                } else {
+                                  await AppUtils.makeRequests(
+                                    "query",
+                                    "INSERT INTO Likes VALUES(NULL, '$uid', '$itemId', '${DateTime.now()}')",
                                   );
                                 }
-                                getCartQtt(items[index]['id']);
-                              },
-                            );
-                          } else {
-                            context.go('/login');
-                          }
+
+                                /// حدث العداد فقط بعد تنفيذ العملية
+                                getCountLikes(itemId);
+                              } catch (e) {
+                                debugPrint("Error during like/unlike: $e");
+                              }
+                            },
+                          ),
+                        ),
+                        SizedBox(height: 10),
+                        Text(
+                          countLikes,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            shadows: [
+                              Shadow(
+                                offset: Offset(0, 1),
+                                blurRadius: 10,
+                                color: Colors.black, // ظل خفيف وناعم
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        SizedBox(height: 10),
+                        Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.4),
+                                blurRadius: 6,
+                                offset: Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: IconButton(
+                            icon: const Icon(
+                              Iconsax.message_text_1,
+                              color: Colors.white,
+                              size: 32,
+                            ),
+                            onPressed: () {
+                              showCommentsBottomSheet(context);
+                            },
+                          ),
+                        ),
+                        SizedBox(height: 10),
+                        Text(
+                          commentsCount.toString(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            shadows: [
+                              Shadow(
+                                offset: Offset(0, 1),
+                                blurRadius: 10,
+                                color: Colors.black, // ظل خفيف وناعم
+                              ),
+                            ],
+                          ),
+                        ),
+                        SizedBox(height: 10),
+                        Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.4),
+                                blurRadius: 6,
+                                offset: Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: IconButton(
+                            icon: Icon(
+                              userShares != '0'
+                                  ? Iconsax.share5
+                                  : Iconsax.share,
+                              color: Colors.white,
+                              size: 32,
+                            ),
+                            onPressed: () async {
+                              final link =
+                                  'https://pos7d.site/MAZO/product?id=${items[index]['id']}';
+                              SharePlus.instance
+                                  .share(
+                                    ShareParams(
+                                      text: 'شوف المنتج ده على MAZO 👇\n$link',
+                                    ),
+                                  )
+                                  .then((val) async {
+                                    SharedPreferences prefx =
+                                        await SharedPreferences.getInstance();
+                                    if (prefx.getString("UID") != null) {
+                                      var likes = await AppUtils.makeRequests(
+                                        "fetch",
+                                        "SELECT * FROM Shares WHERE user_id = '${prefx.getString("UID")}' AND item_id = '${items[index]['id']}' ",
+                                      );
+                                      if (likes[0] != null) {
+                                        await AppUtils.makeRequests(
+                                          "query",
+                                          "DELETE FROM Shares WHERE user_id = '${prefx.getString("UID")}' AND item_id = '${items[index]['id']}'",
+                                        );
+                                      } else {
+                                        await AppUtils.makeRequests(
+                                          "query",
+                                          "INSERT INTO Shares VALUES(NULL, '${prefx.getString("UID")}', '${items[index]['id']}', '${DateTime.now()}')",
+                                        );
+                                      }
+                                      getCountShares(items[index]['id']);
+                                      getUserShare(items[index]['id']);
+                                    } else {
+                                      context.go('/login');
+                                    }
+                                  });
+                            },
+                          ),
+                        ),
+                        SizedBox(height: 10),
+                        Text(
+                          countShares.toString(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            shadows: [
+                              Shadow(
+                                offset: Offset(0, 1),
+                                blurRadius: 10,
+                                color: Colors.black, // ظل خفيف وناعم
+                              ),
+                            ],
+                          ),
+                        ),
+                        SizedBox(height: 10),
+                        Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.4),
+                                blurRadius: 6,
+                                offset: Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: IconButton(
+                            icon: Icon(
+                              cartCount != 0
+                                  ? Iconsax.shopping_cart5
+                                  : Iconsax.shopping_cart,
+                              color: Colors.white,
+                              size: 32,
+                            ),
+                            onPressed: () async {
+                              SharedPreferences prefx =
+                                  await SharedPreferences.getInstance();
+
+                              if (prefx.getString("OID") != null) {
+                                var notCartAdded = await AppUtils.makeRequests(
+                                  "fetch",
+                                  "SELECT * FROM Cart WHERE user_id = '${items[index]['uid']}' AND item_id = '${items[index]['id']}' AND order_id = '${prefx.getString("OID")}' ",
+                                );
+
+                                // لو المنتج مش في السلة، ضيفه
+                                if (notCartAdded[0] == null) {
+                                  await AppUtils.makeRequests(
+                                    "query",
+                                    "INSERT INTO Cart VALUES (NULL, '${items[index]['uid']}', '${items[index]['id']}', '0','${prefx.getString("OID")}')",
+                                  );
+
+                                  // بعد الإضافة، نعمل Fetch تاني عشان نجيب الـ ID الجديد
+                                  notCartAdded = await AppUtils.makeRequests(
+                                    "fetch",
+                                    "SELECT * FROM Cart WHERE user_id = '${items[index]['uid']}' AND item_id = '${items[index]['id']}' AND order_id = '${prefx.getString("OID")}' ",
+                                  );
+                                }
+
+                                // بعد التأكد إن فيه عنصر فعلاً
+                                try {
+                                  if (notCartAdded[0] != null) {
+                                    CartBottomSheet.showCart(
+                                      context,
+                                      notCartAdded[0]['id'],
+                                      int.parse(cartCount.toString()),
+                                      (newQtt) {
+                                        if (newQtt == 0) {
+                                          AppUtils.makeRequests(
+                                            "query",
+                                            "DELETE FROM Cart WHERE id = '${notCartAdded[0]['id']}'",
+                                          );
+                                        }
+                                        getCartQtt(items[index]['id']);
+                                        getCartCount(items[index]['id']);
+                                      },
+                                    );
+                                  } else {
+                                    print('لم يتم العثور على عنصر في السلة');
+                                  }
+                                } catch (e) {
+                                  print(
+                                    'Error in CartBottomSheet.showCart: $e',
+                                  );
+                                }
+                              } else {
+                                context.go('/login');
+                              }
+                            },
+                          ),
+                        ),
+                        SizedBox(height: 10),
+                        Text(
+                          cartCount.toString(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            shadows: [
+                              Shadow(
+                                offset: Offset(0, 1),
+                                blurRadius: 10,
+                                color: Colors.black,
+                              ),
+                            ],
+                          ),
+                        ),
+                        SizedBox(height: 10),
+                      ],
+                    ),
+                  ),
+
+                  if (videoDuration != null && videoPosition != null)
+                    Positioned(
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      child: Slider(
+                        value:
+                            videoPosition.inMilliseconds
+                                .clamp(0, videoDuration.inMilliseconds)
+                                .toDouble(),
+                        min: 0,
+                        max: videoDuration.inMilliseconds.toDouble(),
+                        thumbColor: Colors.white,
+                        activeColor: Colors.white,
+                        inactiveColor: Colors.white38,
+                        onChanged: (value) {
+                          final newPosition = Duration(
+                            milliseconds: value.toInt(),
+                          );
+                          currentController?.videoPlayerController?.seekTo(
+                            newPosition,
+                          );
+                          setState(() {});
                         },
                       ),
                     ),
-                    SizedBox(height: 10),
-                    Text(
-                      qtt,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        shadows: [
-                          Shadow(
-                            offset: Offset(0, 1),
-                            blurRadius: 10,
-                            color: Colors.black,
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(height: 10),
-                  ],
-                ),
+                ],
               ),
-
-              if (videoDuration != null && videoPosition != null)
-                Positioned(
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  child: Slider(
-                    value:
-                        videoPosition.inMilliseconds
-                            .clamp(0, videoDuration.inMilliseconds)
-                            .toDouble(),
-                    min: 0,
-                    max: videoDuration.inMilliseconds.toDouble(),
-                    thumbColor: Colors.white,
-                    activeColor: Colors.white,
-                    inactiveColor: Colors.white38,
-                    onChanged: (value) {
-                      final newPosition = Duration(milliseconds: value.toInt());
-                      currentController?.videoPlayerController?.seekTo(
-                        newPosition,
-                      );
-                      setState(() {});
-                    },
-                  ),
-                ),
-            ],
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }

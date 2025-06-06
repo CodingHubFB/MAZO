@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:mazo/Core/PushNotificationsService.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AppUtils {
   static sNavigateTo(context, routeName) {
@@ -66,7 +68,12 @@ class AppUtils {
     }
   }
 
-  Future uploadItems(pathFile, itemId) async {
+  Future uploadItems(pathFile, itemId, itemTxt, isPush) async {
+    SharedPreferences prefx = await SharedPreferences.getInstance();
+    var merchantUser = await AppUtils.makeRequests(
+      "fetch",
+      "SELECT Fullname FROM Users WHERE uid = '${prefx.getString("UID")}' ",
+    );
     final formData = FormData.fromMap({
       "file": await MultipartFile.fromFile(
         pathFile,
@@ -82,6 +89,20 @@ class AppUtils {
     );
     if (response.statusCode == 200) {
       print('Image uploaded successfully: ${response.data}');
+      if (isPush == true) {
+        var request = await AppUtils.makeRequests(
+          "fetch",
+          "SELECT * FROM Followers WHERE buyer_id = '${prefx.getString("UID")}' ",
+        );
+        for (var req in request) {
+          print(req['user_token']);
+          PushNotificationService.sendNotificationToUser(
+            req['user_token'].toString(),
+            "${merchantUser[0]['Fullname']} has added a new item – take a look!",
+            "Explore the $itemTxt – only on MAZO.",
+          );
+        }
+      }
     } else {
       print("Image Not Uploaded");
     }

@@ -178,7 +178,7 @@ class _EditItemsState extends State<EditItems> {
                   "UPDATE Items SET name = '${itemController.text}', price = '${priceController.text}', description = '${descController.text}', visibility = '$visibility', comments = '$comments',uid = '${prefx.getString("UID")}', created_at = '${DateTime.now()}' WHERE id = '$itemId'",
                 );
                 for (var file in filesToUpload) {
-                  await AppUtils().uploadItems(file, itemId);
+                  await AppUtils().uploadItems(file, itemId, itemController.text, false);
                 }
               });
             },

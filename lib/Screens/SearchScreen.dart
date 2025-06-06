@@ -1,6 +1,7 @@
 import 'package:mazo/Core/Utils.dart';
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -28,6 +29,28 @@ class _SearchScreenState extends State<SearchScreen> {
     }
   }
 
+  String lang = "eng";
+  List languages = [];
+
+  Future getLang() async {
+    SharedPreferences prefx = await SharedPreferences.getInstance();
+
+    setState(() {
+      lang = prefx.getString("Lang")!;
+      getLangDB();
+    });
+  }
+
+  Future getLangDB() async {
+    var results = await AppUtils.makeRequests(
+      "fetch",
+      "SELECT $lang FROM Languages ",
+    );
+    setState(() {
+      languages = results;
+    });
+  }
+
   void filterItems(String query) {
     final results =
         query.isEmpty
@@ -48,6 +71,7 @@ class _SearchScreenState extends State<SearchScreen> {
   @override
   void initState() {
     super.initState();
+    getLang();
     fetchItems();
     searchController.addListener(() {
       filterItems(searchController.text);
@@ -57,13 +81,17 @@ class _SearchScreenState extends State<SearchScreen> {
   @override
   Widget build(BuildContext context) {
     return Directionality(
-      textDirection: TextDirection.rtl,
+      textDirection: lang == 'arb' ? TextDirection.rtl : TextDirection.ltr,
       child: Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           leading: IconButton(
-            icon: Icon(Iconsax.arrow_circle_right),
+            icon: Icon(
+              lang == 'arb'
+                  ? Iconsax.arrow_circle_right
+                  : Iconsax.arrow_circle_left,
+            ),
             onPressed: () => Navigator.pop(context),
           ),
           title: TextFormField(
@@ -82,7 +110,7 @@ class _SearchScreenState extends State<SearchScreen> {
             decoration: InputDecoration(
               filled: true,
               fillColor: Colors.grey.shade100,
-              hintText: "البحث في مازو",
+              hintText: languages[29][lang],
               contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 20),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(50),

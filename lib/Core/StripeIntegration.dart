@@ -5,12 +5,14 @@ import 'package:mazo/Core/ApiKeys.dart';
 abstract class PaymentManager {
   static Future<String> makePayment(int amount, String currency) async {
     try {
-      String clientSecret = await _getClientSecret((amount * 100).toString(), currency);
+      String clientSecret = await _getClientSecret(amount.toString(), currency);
       await _initializePaymentSheet(clientSecret);
       await Stripe.instance.presentPaymentSheet();
 
       // Retrieve the payment status
-      final paymentIntent = await Stripe.instance.retrievePaymentIntent(clientSecret);
+      final paymentIntent = await Stripe.instance.retrievePaymentIntent(
+        clientSecret,
+      );
       if (paymentIntent.status == PaymentIntentsStatus.Succeeded) {
         return "Succeeded";
       } else {
@@ -22,10 +24,12 @@ abstract class PaymentManager {
   }
 
   static Future<void> _initializePaymentSheet(String clientSecret) async {
-    await Stripe.instance.initPaymentSheet(paymentSheetParameters: SetupPaymentSheetParameters(
-      paymentIntentClientSecret: clientSecret,
-      merchantDisplayName: "Basil Mohamed"
-    ));
+    await Stripe.instance.initPaymentSheet(
+      paymentSheetParameters: SetupPaymentSheetParameters(
+        paymentIntentClientSecret: clientSecret,
+        merchantDisplayName: "Basil Mohamed",
+      ),
+    );
   }
 
   static Future<String> _getClientSecret(String amount, String currency) async {
@@ -38,10 +42,7 @@ abstract class PaymentManager {
           "Content-Type": "application/x-www-form-urlencoded",
         },
       ),
-      data: {
-        "amount": amount,
-        "currency": currency,
-      },
+      data: {"amount": amount, "currency": currency},
     );
     return response.data['client_secret'];
   }

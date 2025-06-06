@@ -51,7 +51,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyAWjCoRvUx108hE3jvYvzu13_pVrTgY-H8',
-    appId: '1:326760304171:android:1a25e857a3909c2e7e646e',
+    appId: '1:326760304171:android:ddff8988c613b35b7e646e',
     messagingSenderId: '326760304171',
     projectId: 'mazo-4ea7b',
     storageBucket: 'mazo-4ea7b.firebasestorage.app',
@@ -59,10 +59,11 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyC59EdfD2jho7gXGYfV6KeNvrJw_3JOBI8',
-    appId: '1:326760304171:ios:ccb570e92eca58b17e646e',
+    appId: '1:326760304171:ios:15dc4223e027e4847e646e',
     messagingSenderId: '326760304171',
     projectId: 'mazo-4ea7b',
     storageBucket: 'mazo-4ea7b.firebasestorage.app',
     iosBundleId: 'com.mazo.shorts',
   );
+
 }

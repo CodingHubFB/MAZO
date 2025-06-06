@@ -399,7 +399,16 @@ class _HomeScreenProfileState extends State<HomeScreenProfile> {
                 size: 25,
               ),
               onPressed: () {
-                SimpleMoreItems.showItemDetails(context);
+                showModalBottomSheet(
+                  context: context,
+                  backgroundColor: Colors.transparent,
+                  builder: (BuildContext ctx) {
+                    return Directionality(
+                      textDirection: TextDirection.rtl,
+                      child: const moreBottomSheet(),
+                    );
+                  },
+                );
               },
             ),
           ),

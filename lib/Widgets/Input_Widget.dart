@@ -18,7 +18,25 @@ class InputWidget extends StatefulWidget {
   final FocusNode? focusNode;
   final TextAlign? iAlign;
   final BorderSide? border;
-  const InputWidget({super.key, this.icontroller, this.iformatter, this.ichanged, this.ikeyboardType, this.isuffixIcon, this.iMaxLength, this.isDisabled, this.iInit, this.iValid, this.iHint, this.iprefix, this.isRead, this.iTap, this.focusNode, this.iAlign, this.border});
+  const InputWidget({
+    super.key,
+    this.icontroller,
+    this.iformatter,
+    this.ichanged,
+    this.ikeyboardType,
+    this.isuffixIcon,
+    this.iMaxLength,
+    this.isDisabled,
+    this.iInit,
+    this.iValid,
+    this.iHint,
+    this.iprefix,
+    this.isRead,
+    this.iTap,
+    this.focusNode,
+    this.iAlign,
+    this.border,
+  });
 
   @override
   State<InputWidget> createState() => _InputWidgetState();
@@ -41,17 +59,26 @@ class _InputWidgetState extends State<InputWidget> {
       cursorColor: Color(0xFF4F67FF),
       controller: widget.icontroller,
       textAlign: widget.iAlign ?? TextAlign.start,
-      decoration:  InputDecoration(
-        border: OutlineInputBorder(borderSide: widget.border ?? BorderSide.none,),
-        enabledBorder: OutlineInputBorder(borderSide: widget.border ?? BorderSide.none,),
-        disabledBorder: OutlineInputBorder(borderSide: widget.border ?? BorderSide.none,),
-        focusedBorder: OutlineInputBorder(borderSide: widget.border ?? BorderSide.none,),
+      decoration: InputDecoration(
+        border: OutlineInputBorder(
+          borderSide: widget.border ?? BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderSide: widget.border ?? BorderSide.none,
+        ),
+        disabledBorder: OutlineInputBorder(
+          borderSide: widget.border ?? BorderSide.none,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderSide: widget.border ?? BorderSide.none,
+        ),
         counterText: "",
         hintText: widget.iHint,
         filled: true,
         fillColor: Color(0xFFF7F7F7),
         suffixIcon: widget.isuffixIcon,
         prefixIcon: widget.iprefix,
-      ),);
+      ),
+    );
   }
 }

@@ -22,6 +22,8 @@ class OTPScreen extends StatefulWidget {
 class _OTPScreenState extends State<OTPScreen> {
   final TextEditingController otpController = TextEditingController();
   bool isValid = false;
+  String lang = "eng";
+  List languages = [];
 
   Future<void> getSMS() async {
     try {
@@ -38,109 +40,156 @@ class _OTPScreenState extends State<OTPScreen> {
     }
   }
 
+  Future getLang() async {
+    SharedPreferences prefx = await SharedPreferences.getInstance();
+
+    setState(() {
+      lang = prefx.getString("Lang")!;
+      getLangDB();
+    });
+  }
+
+  Future getLangDB() async {
+    var results = await AppUtils.makeRequests(
+      "fetch",
+      "SELECT $lang FROM Languages ",
+    );
+    setState(() {
+      languages = results;
+    });
+  }
+
   @override
   void initState() {
+    getLang();
     getSMS();
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: Stack(
-        children: [
-          SingleChildScrollView(
-            child: Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  vertical: 50,
-                  horizontal: 20,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+    print(widget.otp);
+    return Directionality(
+      textDirection: lang == 'arb' ? TextDirection.rtl : TextDirection.ltr,
+      child:
+          languages.isEmpty
+              ? Scaffold()
+              : Scaffold(
+                backgroundColor: Colors.white,
+                body: Stack(
                   children: [
-                    SizedBox(height: 40),
-                    Center(
-                      child: Image.asset(
-                        "assets/img/Logo.png",
-                        width: MediaQuery.sizeOf(context).width / 2,
-                      ),
-                    ),
-                    SizedBox(height: 30),
-                    Text(
-                      "Enter your OTP",
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    SizedBox(height: 20),
-                    OtpWidget(
-                      otpController: otpController,
-                      otpChanged: (val) {
-                        setState(() {
-                          isValid = val.length == 6;
-                        });
-                      },
-                    ),
-                    SizedBox(height: 20),
-                    SizedBox(
-                      height: 50,
-                      child: GestureDetector(
-                        onTap: () async {
-                          SharedPreferences prefx =
-                              await SharedPreferences.getInstance();
-                          var users = await AppUtils.makeRequests(
-                            "fetch",
-                            "SELECT uid, oid FROM Users WHERE PhoneNumber = '${widget.mobile}'",
-                          );
+                    SingleChildScrollView(
+                      child: Center(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 50,
+                            horizontal: 20,
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              SizedBox(height: 40),
+                              Center(
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(20),
+                                  child: Image.asset(
+                                    "assets/img/Logo.png",
+                                    width:
+                                        MediaQuery.sizeOf(context).width / 2.8,
+                                  ),
+                                ),
+                              ),
+                              SizedBox(height: 30),
+                              Text(
+                                languages[4][lang] ?? "",
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              SizedBox(height: 20),
+                              Directionality(
+                                textDirection: TextDirection.ltr,
+                                child: OtpWidget(
+                                  otpController: otpController,
+                                  otpChanged: (val) {
+                                    setState(() {
+                                      isValid = val.length == 6;
+                                    });
+                                  },
+                                ),
+                              ),
+                              SizedBox(height: 20),
+                              SizedBox(
+                                height: 50,
+                                child: GestureDetector(
+                                  onTap: () async {
+                                    SharedPreferences prefx =
+                                        await SharedPreferences.getInstance();
+                                    var users = await AppUtils.makeRequests(
+                                      "fetch",
+                                      "SELECT uid, oid FROM Users WHERE PhoneNumber = '${widget.mobile}'",
+                                    );
 
-                          if (otpController.text == widget.otp.toString()) {
-                            if (users[0] != null) {
-                              await prefx.setString('UID', users[0]['uid']);
-                              await prefx.setString('OID', users[0]['oid']);
-                              context.go("/splash");
-                            } else {
-                              AppUtils.sNavigateToReplace(
-                                context,
-                                '/createUser',
-                                {'phonenumber': widget.mobile!},
-                              );
-                            }
-                          } else {
-                            AppUtils.snackBarShowing(
-                              context,
-                              "Otp is Not Correct",
-                            );
-                          }
+                                    if (otpController.text ==
+                                        widget.otp.toString()) {
+                                      if (users[0] != null) {
+                                        await prefx.setString(
+                                          'UID',
+                                          users[0]['uid'],
+                                        );
+                                        await prefx.setString(
+                                          'OID',
+                                          users[0]['oid'],
+                                        );
+                                        context.go("/splash");
+                                      } else {
+                                        AppUtils.sNavigateToReplace(
+                                          context,
+                                          '/createUser',
+                                          {'phonenumber': widget.mobile!},
+                                        );
+                                      }
+                                    } else {
+                                      AppUtils.snackBarShowing(
+                                        context,
+                                        languages[108][lang] ?? "",
+                                      );
+                                    }
+                                  },
+                                  child: ButtonWidget(
+                                    isDisabled: true,
+                                    btnText: languages[5][lang] ?? "",
+                                  ),
+                                ),
+                              ),
+                              SizedBox(height: 10),
+                              Center(child: Text(widget.otp.toString())),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      top: 40,
+                      left: lang == 'eng' ? 20 : null,
+                      right: lang == 'arb' ? 20 : null,
+                      child: InkWell(
+                        onTap: () {
+                          context.go('/login');
                         },
-                        child: ButtonWidget(
-                          isDisabled: true,
-                          btnText: "Continue",
+                        child: RectButtonWidget(
+                          bicon:
+                              lang == 'arb'
+                                  ? Iconsax.arrow_circle_right
+                                  : Iconsax.arrow_circle_left,
+                          bsize: 35,
                         ),
                       ),
                     ),
                   ],
                 ),
               ),
-            ),
-          ),
-          Positioned(
-            top: 40,
-            left: 20,
-            child: InkWell(
-              onTap: () {
-                context.go('/login');
-              },
-              child: RectButtonWidget(
-                bicon: Iconsax.arrow_circle_left,
-                bsize: 35,
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

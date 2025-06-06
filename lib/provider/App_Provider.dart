@@ -11,9 +11,16 @@ class AppProvider extends ChangeNotifier {
   List putItems = [];
   String commentBool = "Off";
   String currentUser = "";
+  String shipId = "";
   List selectedAddress = [];
   List<String> _newMedia = [];
   List<String> get newMedia => _newMedia;
+  String lang = 'eng';
+
+  void setLang(String value) {
+    lang = value;
+    notifyListeners();
+  }
 
   void addNewMedia(String path) {
     media.add(path);
@@ -29,6 +36,11 @@ class AppProvider extends ChangeNotifier {
   void setSelectedAddress(selectedAddresses) {
     selectedAddress.clear();
     selectedAddress.add(selectedAddresses);
+    notifyListeners();
+  }
+
+  void setShipId(shipIds) {
+    shipId = shipIds;
     notifyListeners();
   }
 

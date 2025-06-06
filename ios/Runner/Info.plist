@@ -39,6 +39,13 @@
 	<string>نحتاج إذنك للوصول إلى الميكروفون لتسجيل الفيديوهات.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>نحتاج إذنك للوصول إلى الصور لتحديد صورة من ألبومك.</string>
+	<key>FirebaseAppDelegateProxyEnabled</key>
+	<false/>
+	<key>UIBackgroundModes</key>
+	<array>
+	    <string>fetch</string>
+        <string>remote-notification</string>
+	</array>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>

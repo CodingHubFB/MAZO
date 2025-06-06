@@ -6,9 +6,10 @@ import 'package:mazo/Screens/Auth/OTPScreen.dart';
 import 'package:mazo/Screens/CartScreen.dart';
 import 'package:mazo/Screens/Checkout.dart';
 import 'package:mazo/Screens/Checkout_Summary.dart';
+import 'package:mazo/Screens/CustomerOrders.dart';
 import 'package:mazo/Screens/Home/Home_Screen_Profile.dart';
+import 'package:mazo/Screens/InvoiceWebView.dart';
 import 'package:mazo/Screens/PaymentSuccess.dart';
-import 'package:mazo/Screens/ProductScreen.dart';
 import 'package:mazo/Screens/Profile/User_Profile.dart';
 import 'package:mazo/Screens/SearchScreen.dart';
 import 'package:mazo/Screens/Shipping_Orders.dart';
@@ -27,6 +28,30 @@ final GoRouter router = GoRouter(
     GoRoute(path: '/login', builder: (context, state) => LoginScreen()),
     GoRoute(path: '/search', builder: (context, state) => SearchScreen()),
     GoRoute(
+      path: '/customersOrders',
+      builder: (context, state) {
+        final custId = (state.extra as Map?)?['custId'] ?? '';
+        return CustomersOrders(custId: custId);
+      },
+    ),
+
+    GoRoute(
+      path: '/invoice',
+      builder: (context, state) {
+        final orderId = (state.extra as Map?)?['orderId'] ?? '';
+        final payment = (state.extra as Map?)?['payment'] ?? '';
+        final shipId = (state.extra as Map?)?['shipId'] ?? '';
+        final custId = (state.extra as Map?)?['custId'] ?? '';
+        return InvoiceWebView(
+          orderId: orderId,
+          payment: payment,
+          shipId: shipId,
+          custId: custId,
+        );
+      },
+    ),
+
+    GoRoute(
       path: '/otp',
       builder: (context, state) {
         final params = state.extra as Map<String, String>;
@@ -38,7 +63,7 @@ final GoRouter router = GoRouter(
     ),
 
     GoRoute(
-      path: '/product',
+      path: '/MAZO/product',
       builder: (context, state) {
         final id = state.uri.queryParameters['id'];
         print('وصل للـ Route بتاع المنتج، ID = $id');

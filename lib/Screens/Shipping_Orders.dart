@@ -137,6 +137,16 @@ class _ShippingOrdersState extends State<ShippingOrders> {
                             context,
                             listen: false,
                           ).setSelectedAddress(addressesList[i]);
+                          Provider.of<AppProvider>(
+                            context,
+                            listen: false,
+                          ).setShipId(addressesList[i]['id']);
+                          print(
+                            Provider.of<AppProvider>(
+                              context,
+                              listen: false,
+                            ).shipId,
+                          );
                         });
                       },
                       child: SizedBox(
@@ -328,6 +338,10 @@ class _ShippingOrdersState extends State<ShippingOrders> {
                       context,
                       listen: false,
                     ).setSelectedAddress(latestAddress[0]);
+                    Provider.of<AppProvider>(
+                      context,
+                      listen: false,
+                    ).setShipId(latestAddress[0]['id']);
                   }
                   context.go('/checkout');
                 },
