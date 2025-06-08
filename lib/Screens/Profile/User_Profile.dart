@@ -12,8 +12,7 @@ import 'package:mazo/provider/App_Provider.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:video_thumbnail/video_thumbnail.dart';
-
+import 'package:video_compress/video_compress.dart';
 class UserProfile extends StatefulWidget {
   final String userId;
   const UserProfile({super.key, required this.userId});
@@ -29,7 +28,6 @@ class _UserProfileState extends State<UserProfile> {
   List languages = [];
   int currentIndex = 0;
   String lang = "eng";
-  Map<String, Future<String?>> thumbnailFutures = {};
 
   String totalItems = "";
   String ordered = "";
@@ -114,30 +112,20 @@ class _UserProfileState extends State<UserProfile> {
     });
   }
 
-  Future<String?> generateVideoThumbnail(String videoUrl) async {
-    print(videoUrl);
-
-    final tempDir = await getTemporaryDirectory();
-
-    // اسم فريد بناءً على الفيديو
-    final fileName = Uri.parse(videoUrl).pathSegments.last;
-    final thumbnailPath = '${tempDir.path}/$fileName.jpg';
-
-    // لو الصورة موجودة بالفعل، رجعها
-    if (File(thumbnailPath).existsSync()) {
-      return thumbnailPath;
-    }
-    print(thumbnailPath);
-
-    // لو مش موجودة، تولدها مرة واحدة
-    return await VideoThumbnail.thumbnailFile(
-      video: videoUrl,
-      thumbnailPath: thumbnailPath,
-      imageFormat: ImageFormat.WEBP,
-      maxHeight: 300,
+  Future<String?> generateThumbnailWithVideoCompress(String videoUrl) async {
+  try {
+    final thumbnailFile = await VideoCompress.getFileThumbnail(
+      videoUrl,
       quality: 75,
+      position: -1,
     );
+    return thumbnailFile.path;§
+  } catch (e) {
+    print("Error generating thumbnail: $e");
+    return null;
   }
+}
+
 
   @override
   void initState() {
@@ -436,9 +424,7 @@ class _UserProfileState extends State<UserProfile> {
                                       String mediaUrl =
                                           "https://pos7d.site/MAZO/uploads/Items/${merchantItems[index]['id']}/$firstMedia";
 
-                                      thumbnailFutures[mediaUrl] ??=
-                                          generateVideoThumbnail(mediaUrl);
-                                      print(thumbnailFutures[mediaUrl]);
+                                      
                                       return GestureDetector(
                                         behavior: HitTestBehavior.opaque,
                                         onTap: () {
@@ -463,50 +449,8 @@ class _UserProfileState extends State<UserProfile> {
                                               ClipRRect(
                                                 child:
                                                     fileExtension == 'mp4'
-                                                        ? FutureBuilder(
-                                                          future:
-                                                              thumbnailFutures[mediaUrl],
-                                                          builder: (
-                                                            context,
-                                                            snapshot,
-                                                          ) {
-                                                            if (snapshot
-                                                                    .connectionState ==
-                                                                ConnectionState
-                                                                    .waiting) {
-                                                              return Container(
-                                                                color:
-                                                                    Colors
-                                                                        .grey
-                                                                        .shade200,
-                                                              );
-                                                            }
-                                                            if (snapshot
-                                                                .hasData) {
-                                                              return AbsorbPointer(
-                                                                absorbing: true,
-                                                                child: Image.file(
-                                                                  File(
-                                                                    snapshot
-                                                                        .data!,
-                                                                  ),
-                                                                  fit:
-                                                                      BoxFit
-                                                                          .cover,
-                                                                  width:
-                                                                      double
-                                                                          .infinity,
-                                                                  height:
-                                                                      double
-                                                                          .infinity,
-                                                                ),
-                                                              );
-                                                            }
-                                                            return Icon(
-                                                              Icons.error,
-                                                            );
-                                                          },
-                                                        )
+                                                        ? 
+                                                        Container()
                                                         : Image.network(
                                                           mediaUrl,
                                                           fit: BoxFit.cover,
