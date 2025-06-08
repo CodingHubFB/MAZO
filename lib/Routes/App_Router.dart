@@ -4,9 +4,11 @@ import 'package:mazo/Screens/Auth/CompleteProfile.dart';
 import 'package:mazo/Screens/Auth/LoginScreen.dart';
 import 'package:mazo/Screens/Auth/OTPScreen.dart';
 import 'package:mazo/Screens/CartScreen.dart';
+import 'package:mazo/Screens/ChangeLanguage.dart';
 import 'package:mazo/Screens/Checkout.dart';
 import 'package:mazo/Screens/Checkout_Summary.dart';
 import 'package:mazo/Screens/CustomerOrders.dart';
+import 'package:mazo/Screens/ForceUpdateScreen.dart';
 import 'package:mazo/Screens/Home/Home_Screen_Profile.dart';
 import 'package:mazo/Screens/InvoiceWebView.dart';
 import 'package:mazo/Screens/PaymentSuccess.dart';
@@ -17,16 +19,44 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mazo/Screens/Home/Home_Screen.dart';
 import 'package:mazo/Screens/Splash/SplashScreen.dart';
+import 'package:mazo/test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 final GoRouter router = GoRouter(
   navigatorKey: navigatorKey,
   initialLocation: '/splash',
+  redirect: (context, state) async {
+    final prefs = await SharedPreferences.getInstance();
+    final lang = prefs.getString('Lang');
+
+    if (lang == null && state.matchedLocation != '/changeLanguage') {
+      return '/changeLanguage';
+    }
+
+    return null;
+  },
   routes: [
     GoRoute(path: '/splash', builder: (context, state) => const SplashScreen()),
+    GoRoute(
+      path: '/changeLanguage',
+      builder: (context, state) => const ChangeLangScreen(),
+    ),
     GoRoute(path: '/home', builder: (context, state) => HomeScreen()),
+    GoRoute(path: '/test', builder: (context, state) => TestScreen()),
     GoRoute(path: '/login', builder: (context, state) => LoginScreen()),
     GoRoute(path: '/search', builder: (context, state) => SearchScreen()),
+    GoRoute(
+      path: '/force-update',
+      builder: (context, state) {
+        final data = state.extra as Map<String, dynamic>;
+        return ForceUpdateScreen(
+          message: data['message'],
+          storeUrl: data['storeUrl'],
+        );
+      },
+    ),
+
     GoRoute(
       path: '/customersOrders',
       builder: (context, state) {

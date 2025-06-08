@@ -28,7 +28,7 @@ class _ShippingOrdersState extends State<ShippingOrders> {
   String? selectedCity;
   bool saveAddress = false;
   bool openAddressForm = false;
-  int isActive = 0;
+  int isActive = -1;
 
   List<String> arabCountries = [
     "Algeria",
@@ -289,6 +289,7 @@ class _ShippingOrdersState extends State<ShippingOrders> {
                             onChanged: (value) {
                               setState(() {
                                 saveAddress = value!;
+                                isActive = 0;
                               });
                             },
                           ),
@@ -317,33 +318,40 @@ class _ShippingOrdersState extends State<ShippingOrders> {
               ? null
               : GestureDetector(
                 onTap: () async {
-                  SharedPreferences prefx =
-                      await SharedPreferences.getInstance();
+                  if (isActive != -1) {
+                    SharedPreferences prefx =
+                        await SharedPreferences.getInstance();
 
-                  if (saveAddress == true) {
-                    // 1. Add the record
-                    await AppUtils.makeRequests(
-                      "query",
-                      "INSERT INTO Shipping_Orders VALUES(NULL, '${fullName.text}', '${mobileNumber.text}', '${email.text}', '$selectedCountry', '$selectedCity', '${zoneNo.text}', '${streetNo.text}', '${buildNo.text}', '${prefx.getString("UID")}','${prefx.getString("OID")}')",
-                    );
+                    if (saveAddress == true) {
+                      // 1. Add the record
+                      await AppUtils.makeRequests(
+                        "query",
+                        "INSERT INTO Shipping_Orders VALUES(NULL, '${fullName.text}', '${mobileNumber.text}', '${email.text}', '$selectedCountry', '$selectedCity', '${zoneNo.text}', '${streetNo.text}', '${buildNo.text}', '${prefx.getString("UID")}','${prefx.getString("OID")}')",
+                      );
 
-                    // 2. Get the latest inserted record for this user and order
-                    var latestAddress = await AppUtils.makeRequests(
-                      "fetch",
-                      "SELECT * FROM Shipping_Orders WHERE uid = '${prefx.getString("UID")}' AND oid = '${prefx.getString("OID")}' ORDER BY id DESC LIMIT 1",
-                    );
+                      // 2. Get the latest inserted record for this user and order
+                      var latestAddress = await AppUtils.makeRequests(
+                        "fetch",
+                        "SELECT * FROM Shipping_Orders WHERE uid = '${prefx.getString("UID")}' AND oid = '${prefx.getString("OID")}' ORDER BY id DESC LIMIT 1",
+                      );
 
-                    print("Latest address added:");
-                    Provider.of<AppProvider>(
+                      print("Latest address added:");
+                      Provider.of<AppProvider>(
+                        context,
+                        listen: false,
+                      ).setSelectedAddress(latestAddress[0]);
+                      Provider.of<AppProvider>(
+                        context,
+                        listen: false,
+                      ).setShipId(latestAddress[0]['id']);
+                    }
+                    context.go('/checkout');
+                  } else {
+                    AppUtils.snackBarShowing(
                       context,
-                      listen: false,
-                    ).setSelectedAddress(latestAddress[0]);
-                    Provider.of<AppProvider>(
-                      context,
-                      listen: false,
-                    ).setShipId(latestAddress[0]['id']);
+                      "Please Choose The Address.",
+                    );
                   }
-                  context.go('/checkout');
                 },
 
                 child: SizedBox(

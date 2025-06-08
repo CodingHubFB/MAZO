@@ -192,6 +192,19 @@ class _AddItemsState extends State<AddItems> {
                               itemId.toString(),
                               itemController.text,
                             );
+                            var resultsPush = await AppUtils.makeRequests(
+                              "fetch",
+                              "SELECT * FROM Followers WHERE buyer_id = '${prefx.getString("UID")}' ",
+                            );
+                            if (resultsPush[0] != null) {
+                              for (var resultPo in resultsPush) {
+                                PushNotificationService.sendNotificationToUser(
+                                  resultPo['user_token'],
+                                  languages[117][lang],
+                                  itemController.text.toString(),
+                                );
+                              }
+                            }
 
                             // تنظيف وإعادة الضبط
                             mediaList.clear();

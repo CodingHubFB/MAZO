@@ -1,8 +1,12 @@
+import 'dart:io';
+
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mazo/Core/Theme.dart';
 import 'package:mazo/Core/Utils.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -13,16 +17,70 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
-  String lang = "eng";
+  String lang = "";
   List languages = [];
 
-  Future getLang() async {
-    SharedPreferences prefx = await SharedPreferences.getInstance();
+  Future<void> checkForForceUpdate() async {
+    try {
+      final dio = Dio();
+      String platform = "";
+      if (Platform.isIOS) {
+        setState(() {
+          platform = "IOS";
+        });
+      } else {
+        setState(() {
+          platform = "Android";
+        });
+      }
 
-    setState(() {
-      lang = prefx.getString("Lang")!;
-      getLangDB();
-    });
+      final response = await dio.get(
+        'https://pos7d.site/MAZO/get_update_info.php?platform=$platform&k=${DateTime.now().millisecondsSinceEpoch}',
+      );
+
+      if (response.statusCode == 200) {
+        final data = response.data;
+        final latestVersion = data['latest_version'];
+        final forceUpdate = data['force_update'].toString() == "1";
+        final message = data['message'];
+        final storeUrl = data['store_link'];
+
+        final packageInfo = await PackageInfo.fromPlatform();
+        final currentVersion = packageInfo.version;
+
+        print(
+          "📱 Current: $currentVersion | 🔄 Latest: $latestVersion | 🔐 Force: $forceUpdate",
+        );
+
+        if (forceUpdate && currentVersion != latestVersion) {
+          print("🚨 Force Update Triggered!");
+          context.go(
+            '/force-update',
+            extra: {'message': message, 'storeUrl': storeUrl},
+          );
+        }
+      }
+    } catch (e) {
+      print("Error while checking for update: $e");
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    checkForForceUpdate();
+    _checkLang();
+  }
+
+  Future<void> _checkLang() async {
+    final prefs = await SharedPreferences.getInstance();
+    final storedLang = prefs.getString("Lang");
+    if (storedLang != null) {
+      lang = storedLang;
+      await getLangDB();
+      _navigateToHome();
+      setState(() {});
+    }
   }
 
   Future getLangDB() async {
@@ -35,31 +93,39 @@ class _SplashScreenState extends State<SplashScreen> {
     });
   }
 
-  @override
-  void initState() {
-    getLang();
-    Future.delayed(const Duration(seconds: 3), () {
+  void _navigateToHome() {
+    Future.delayed(const Duration(seconds: 2), () {
       if (!mounted) return;
-      context.go('/home'); // التنقل باستخدام GoRouter
+      context.go('/home');
     });
-    super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    return languages.isEmpty ? Scaffold() : Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.asset("assets/img/Logo.png", width: 170),
-            const SizedBox(height: 20),
-            Text(languages[0][lang] ?? "", style: Theme.of(context).textTheme.displayLarge),
-            const SizedBox(height: 20),
-            SpinKitDoubleBounce(color: AppTheme.primaryColor, size: 30.0),
-          ],
-        ),
-      ),
-    );
+    return languages.isEmpty
+        ? const Scaffold(body: Center(child: CircularProgressIndicator()))
+        : Scaffold(
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: Image.asset(
+                    "assets/img/Logo.png",
+                    width: MediaQuery.sizeOf(context).width / 2.8,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  languages[0][lang] ?? "",
+                  style: Theme.of(context).textTheme.displayLarge,
+                ),
+                const SizedBox(height: 20),
+                SpinKitDoubleBounce(color: AppTheme.primaryColor, size: 30.0),
+              ],
+            ),
+          ),
+        );
   }
 }

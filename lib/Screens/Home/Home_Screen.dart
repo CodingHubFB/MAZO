@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -51,7 +52,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool isFollowed = false;
   String lang = "eng";
   List languages = [];
-
+  String followEnb = "0";
   Future getLang() async {
     SharedPreferences prefx = await SharedPreferences.getInstance();
 
@@ -59,6 +60,24 @@ class _HomeScreenState extends State<HomeScreen> {
       lang = prefx.getString("Lang")!;
       getLangDB();
     });
+  }
+
+  Future getCurrentFollowed(buyerID) async {
+    String? fcmToken = await FirebaseMessaging.instance.getToken();
+    SharedPreferences prefx = await SharedPreferences.getInstance();
+    var result = await AppUtils.makeRequests(
+      "fetch",
+      "SELECT * FROM Followers WHERE buyer_id = '$buyerID' AND user_id = '${prefx.getString("UID")}' ",
+    );
+    print(
+      "SELECT * FROM Followers WHERE buyer_id = '$buyerID' AND user_id = '${prefx.getString("UID")}' ",
+    );
+    if (result[0] != null) {
+      followEnb = result[0]['id'];
+    } else {
+      followEnb = "0";
+    }
+    setState(() {});
   }
 
   Future getLangDB() async {
@@ -350,6 +369,7 @@ class _HomeScreenState extends State<HomeScreen> {
       getCartQtt(firstItem['id']);
       getCartCount(firstItem['id']);
       getCommentsCount(firstItem['id']);
+      getCurrentFollowed(firstItem['uid']);
     }
   }
 
@@ -363,11 +383,11 @@ class _HomeScreenState extends State<HomeScreen> {
     platform.setMethodCallHandler((call) async {
       if (call.method == "openProduct") {
         final productId = call.arguments.toString();
-        print("فتح المنتج ID: $productId");
+        final path = '/MAZO/product?id=$productId';
 
-        Future.delayed(Duration(milliseconds: 500), () {
-          router.go('/product?id=$productId');
-        });
+        print("🚀 فتح المنتج ID: $productId → المسار: $path");
+
+        GoRouter.of(navigatorKey.currentContext!).go(path);
       }
     });
   }
@@ -644,6 +664,7 @@ class _HomeScreenState extends State<HomeScreen> {
               getCartQtt(item['id']);
               getCartCount(item['id']);
               getCommentsCount(item['id']);
+              getCurrentFollowed(item['uid']);
             });
             getCurrentMerchant(item['uid']);
             setState(() {
@@ -873,10 +894,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                                   : true,
                                           child: GestureDetector(
                                             onTap: () async {
+                                              SharedPreferences prefx =
+                                                  await SharedPreferences.getInstance();
                                               if (uid != "") {
-                                                setState(() {
-                                                  isFollowed = !isFollowed;
-                                                });
                                                 String? fcmToken =
                                                     await FirebaseMessaging
                                                         .instance
@@ -887,13 +907,24 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 var result =
                                                     await AppUtils.makeRequests(
                                                       "fetch",
-                                                      "SELECT * FROM Followers WHERE user_token = '$fcmToken'",
+                                                      "SELECT * FROM Followers WHERE buyer_id = '${currentUsers[0]['uid']}'",
                                                     );
 
                                                 if (result[0] == null) {
+                                                  setState(() {
+                                                    followEnb = "1";
+                                                  });
                                                   AppUtils.makeRequests(
                                                     "query",
-                                                    "INSERT INTO Followers VALUES(NULL, '${currentUsers[0]['uid']}', '$fcmToken')",
+                                                    "INSERT INTO Followers VALUES(NULL, '${currentUsers[0]['uid']}', '${prefx.getString("UID")}','$fcmToken')",
+                                                  );
+                                                } else {
+                                                  setState(() {
+                                                    followEnb = "0";
+                                                  });
+                                                  AppUtils.makeRequests(
+                                                    "query",
+                                                    "DELETE FROM Followers WHERE buyer_id = '${currentUsers[0]['uid']}' AND user_token = '$fcmToken' ",
                                                   );
                                                 }
                                               } else {
@@ -909,15 +940,19 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 borderRadius:
                                                     BorderRadius.circular(10),
                                                 color:
-                                                    isFollowed == false
+                                                    followEnb == "0"
                                                         ? Colors.red
                                                         : Colors.white,
                                               ),
                                               child: Text(
-                                                languages[51][lang],
+                                                followEnb == "0"
+                                                    ? languages[51][lang]
+                                                    : lang == 'arb'
+                                                    ? "تتابع"
+                                                    : "Followed",
                                                 style: TextStyle(
                                                   color:
-                                                      isFollowed == false
+                                                      followEnb == "0"
                                                           ? Colors.white
                                                           : Colors.red,
                                                   fontWeight: FontWeight.bold,
@@ -1101,62 +1136,110 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                         SizedBox(height: 10),
-                        Container(
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.4),
-                                blurRadius: 6,
-                                offset: Offset(0, 2),
+                        Builder(
+                          builder: (context) {
+                            return Container(
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.4),
+                                    blurRadius: 6,
+                                    offset: Offset(0, 2),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                          child: IconButton(
-                            icon: Icon(
-                              userShares != '0'
-                                  ? Iconsax.share5
-                                  : Iconsax.share,
-                              color: Colors.white,
-                              size: 32,
-                            ),
-                            onPressed: () async {
-                              final link =
-                                  'https://pos7d.site/MAZO/product?id=${items[index]['id']}';
-                              SharePlus.instance
-                                  .share(
-                                    ShareParams(
-                                      text: 'شوف المنتج ده على MAZO 👇\n$link',
-                                    ),
-                                  )
-                                  .then((val) async {
-                                    SharedPreferences prefx =
-                                        await SharedPreferences.getInstance();
-                                    if (prefx.getString("UID") != null) {
-                                      var likes = await AppUtils.makeRequests(
-                                        "fetch",
-                                        "SELECT * FROM Shares WHERE user_id = '${prefx.getString("UID")}' AND item_id = '${items[index]['id']}' ",
-                                      );
-                                      if (likes[0] != null) {
-                                        await AppUtils.makeRequests(
-                                          "query",
-                                          "DELETE FROM Shares WHERE user_id = '${prefx.getString("UID")}' AND item_id = '${items[index]['id']}'",
-                                        );
-                                      } else {
-                                        await AppUtils.makeRequests(
-                                          "query",
-                                          "INSERT INTO Shares VALUES(NULL, '${prefx.getString("UID")}', '${items[index]['id']}', '${DateTime.now()}')",
-                                        );
-                                      }
-                                      getCountShares(items[index]['id']);
-                                      getUserShare(items[index]['id']);
-                                    } else {
-                                      context.go('/login');
-                                    }
-                                  });
-                            },
-                          ),
+                              child: IconButton(
+                                icon: Icon(
+                                  userShares != '0'
+                                      ? Iconsax.share5
+                                      : Iconsax.share,
+                                  color: Colors.white,
+                                  size: 32,
+                                ),
+                                onPressed: () async {
+                                  final box =
+                                      context.findRenderObject() as RenderBox?;
+
+                                  if (box != null) {
+                                    await SharePlus.instance
+                                        .share(
+                                          ShareParams(
+                                            text:
+                                                'شوف المنتج ده على MAZO 👇\nhttps://pos7d.site/MAZO/product?id=${items[index]['id']}',
+                                            sharePositionOrigin:
+                                                box.localToGlobal(Offset.zero) &
+                                                box.size,
+                                          ),
+                                        )
+                                        .then((_) async {
+                                          // بعد الـ Share، كمل منطق المشاركة
+                                          SharedPreferences prefx =
+                                              await SharedPreferences.getInstance();
+                                          if (prefx.getString("UID") != null) {
+                                            var likes = await AppUtils.makeRequests(
+                                              "fetch",
+                                              "SELECT * FROM Shares WHERE user_id = '${prefx.getString("UID")}' AND item_id = '${items[index]['id']}' ",
+                                            );
+                                            if (likes[0] != null) {
+                                              await AppUtils.makeRequests(
+                                                "query",
+                                                "DELETE FROM Shares WHERE user_id = '${prefx.getString("UID")}' AND item_id = '${items[index]['id']}'",
+                                              );
+                                            } else {
+                                              await AppUtils.makeRequests(
+                                                "query",
+                                                "INSERT INTO Shares VALUES(NULL, '${prefx.getString("UID")}', '${items[index]['id']}', '${DateTime.now()}')",
+                                              );
+                                            }
+                                            getCountShares(items[index]['id']);
+                                            getUserShare(items[index]['id']);
+                                          } else {
+                                            context.go('/login');
+                                          }
+                                        });
+                                  } else {
+                                    // fallback بسيط لو box = null
+                                    await SharePlus.instance
+                                        .share(
+                                          ShareParams(
+                                            text:
+                                                'شوف المنتج ده على MAZO 👇\nhttps://pos7d.site/MAZO/product?id=${items[index]['id']}',
+                                          ),
+                                        )
+                                        .then((_) async {
+                                          // بعد الـ Share، كمل منطق المشاركة
+                                          SharedPreferences prefx =
+                                              await SharedPreferences.getInstance();
+                                          if (prefx.getString("UID") != null) {
+                                            var likes = await AppUtils.makeRequests(
+                                              "fetch",
+                                              "SELECT * FROM Shares WHERE user_id = '${prefx.getString("UID")}' AND item_id = '${items[index]['id']}' ",
+                                            );
+                                            if (likes[0] != null) {
+                                              await AppUtils.makeRequests(
+                                                "query",
+                                                "DELETE FROM Shares WHERE user_id = '${prefx.getString("UID")}' AND item_id = '${items[index]['id']}'",
+                                              );
+                                            } else {
+                                              await AppUtils.makeRequests(
+                                                "query",
+                                                "INSERT INTO Shares VALUES(NULL, '${prefx.getString("UID")}', '${items[index]['id']}', '${DateTime.now()}')",
+                                              );
+                                            }
+                                            getCountShares(items[index]['id']);
+                                            getUserShare(items[index]['id']);
+                                          } else {
+                                            context.go('/login');
+                                          }
+                                        });
+                                  }
+                                },
+                              ),
+                            );
+                          },
                         ),
+
                         SizedBox(height: 10),
                         Text(
                           countShares.toString(),
