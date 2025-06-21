@@ -10,7 +10,9 @@ import 'package:mazo/BottomSheets/MediaPickerBottomSheet.dart';
 import 'package:mazo/BottomSheets/CartBottomSheet.dart';
 import 'package:mazo/Core/Theme.dart';
 import 'package:mazo/Core/Utils.dart';
+import 'package:mazo/Core/VideoManager.dart';
 import 'package:mazo/Routes/App_Router.dart';
+import 'package:mazo/Routes/App_Router.dart' as MyApp;
 import 'package:mazo/Screens/SearchScreen.dart';
 import 'package:mazo/provider/App_Provider.dart';
 import 'package:flutter/material.dart';
@@ -38,7 +40,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool showCenterIconLikes = false;
   double likeIconScale = 0.0;
   double likeIconOpacity = 0.0;
-
+  bool isLoading = false;
   IconData centerIconLikes = Iconsax.like_1;
   Duration? videoDuration;
   Duration? videoPosition;
@@ -278,9 +280,14 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future getCurrentMerchant(userId) async {
+    SharedPreferences prefx = await SharedPreferences.getInstance();
+    await AppUtils.makeRequests(
+      "query",
+      "UPDATE Users SET last_activity = '${DateTime.now()}' WHERE id = '${prefx.getString("UID")}' ",
+    );
     var currentUser = await AppUtils.makeRequests(
       "fetch",
-      "SELECT id, Fullname, urlAvatar, uid FROM Users WHERE uid = '$userId'",
+      "SELECT id, Fullname, urlAvatar, uid, status FROM Users WHERE uid = '$userId'",
     );
 
     setState(() {
@@ -311,9 +318,11 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future getItems() async {
+    // SharedPreferences prefx = await SharedPreferences.getInstance();
+    // getCurrentMerchant(prefx.getString("UID"));
     var itemsx = await AppUtils.makeRequests(
       "fetch",
-      "SELECT * FROM Items WHERE visibility = 'Public' ${widget.productId != null ? "AND id = '${widget.productId}'" : ""}",
+      "SELECT * FROM Items WHERE visibility = 'Public' AND  status = '1' AND name != '' AND description != 'null' ${widget.productId != null ? "AND id = '${widget.productId}'" : ""}",
     );
 
     if (itemsx != null && itemsx.isNotEmpty && itemsx is List) {
@@ -338,7 +347,7 @@ class _HomeScreenState extends State<HomeScreen> {
       if (firstMedia.endsWith('.mp4')) {
         // ✅ أول media هو فيديو، نهيّئ ونشغّل
         initializeVideoController(
-          "https://pos7d.site/MAZO/uploads/Items/${firstItem['id']}/$firstMedia",
+          "https://pos7d.site/MAZO/sys/uploads/Items/${firstItem['id']}/$firstMedia",
           0,
           0,
         );
@@ -357,14 +366,12 @@ class _HomeScreenState extends State<HomeScreen> {
         context,
         listen: false,
       ).setCurrentUsers(firstItem['uid']);
-      getCurrentMerchant(
-        Provider.of<AppProvider>(context, listen: false).currentUser,
-      );
+
+      getCurrentMerchant(firstItem['uid']);
       getCartQtt(firstItem['id']);
       getCountLikes(firstItem['id']);
       getUserLike(firstItem['id']);
       getCountShares(firstItem['id']);
-      print(firstItem['id']);
       getUserShare(firstItem['id']);
       getCartQtt(firstItem['id']);
       getCartCount(firstItem['id']);
@@ -430,6 +437,8 @@ class _HomeScreenState extends State<HomeScreen> {
       betterPlayerDataSource: dataSource,
     );
 
+    VideoManager().setController(controller);
+
     videoListener = () {
       final controllerState = controller.videoPlayerController?.value;
 
@@ -492,7 +501,7 @@ class _HomeScreenState extends State<HomeScreen> {
         currentController?.videoPlayerController?.value.duration;
     final videoPosition =
         currentController?.videoPlayerController?.value.position;
-
+    print(currentUsers);
     return Directionality(
       textDirection: lang == "arb" ? TextDirection.rtl : TextDirection.ltr,
       child: Scaffold(
@@ -519,9 +528,19 @@ class _HomeScreenState extends State<HomeScreen> {
                 size: 25,
               ),
               onPressed: () async {
+                VideoManager().pauseCurrent();
                 SharedPreferences prefx = await SharedPreferences.getInstance();
                 if (prefx.getString("UID") != null) {
-                  MediaPickerBottomSheet.showPrimaryOptions(context, true);
+                  if (currentUsers[0]['status'] == '1') {
+                    MediaPickerBottomSheet.showPrimaryOptions(
+                      MyApp.navigatorKey.currentContext!,
+                      true,
+                    );
+                  } else if (currentUsers[0]['status'] == '2') {
+                    AppUtils.snackBarShowing(context, languages[150][lang]);
+                  } else {
+                    AppUtils.snackBarShowing(context, languages[149][lang]);
+                  }
                 } else {
                   context.go('/login');
                 }
@@ -547,6 +566,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   size: 25,
                 ),
                 onPressed: () {
+                  VideoManager().pauseCurrent();
                   openSearch();
                 },
               ),
@@ -569,6 +589,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   size: 25,
                 ),
                 onPressed: () {
+                  VideoManager().pauseCurrent();
                   showModalBottomSheet(
                     context: context,
                     backgroundColor: Colors.transparent,
@@ -622,7 +643,7 @@ class _HomeScreenState extends State<HomeScreen> {
             // شغل الفيديو الأول لو كان فيديو
             if (firstMedia.endsWith('.mp4')) {
               initializeVideoController(
-                "https://pos7d.site/MAZO/uploads/Items/${item['id']}/$firstMedia",
+                "https://pos7d.site/MAZO/sys/uploads/Items/${item['id']}/$firstMedia",
                 index,
                 0,
               );
@@ -701,7 +722,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                       if (currentMedia.endsWith('.mp4')) {
                         initializeVideoController(
-                          "https://pos7d.site/MAZO/uploads/Items/${items[index]['id']}/$currentMedia",
+                          "https://pos7d.site/MAZO/sys/uploads/Items/${items[index]['id']}/$currentMedia",
                           index,
                           mediaIndex,
                         );
@@ -801,7 +822,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         );
                       } else {
                         return Image.network(
-                          "https://pos7d.site/MAZO/uploads/Items/${items[index]['id']}/$mediaUrl",
+                          "https://pos7d.site/MAZO/sys/uploads/Items/${items[index]['id']}/$mediaUrl",
                           fit: BoxFit.cover,
                           width: double.infinity,
                           height: double.infinity,
@@ -861,6 +882,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           currentUsers.isNotEmpty
                               ? GestureDetector(
                                 onTap: () {
+                                  VideoManager().pauseCurrent();
                                   AppUtils.sNavigateToReplace(
                                     context,
                                     '/UserProfile',
@@ -871,7 +893,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   children: [
                                     CircleAvatar(
                                       backgroundImage: NetworkImage(
-                                        "https://pos7d.site/MAZO/${currentUsers[0]['urlAvatar']}",
+                                        "https://pos7d.site/MAZO/sys/${currentUsers[0]['urlAvatar']}",
                                       ),
                                     ),
                                     SizedBox(width: 10),
@@ -894,6 +916,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                   : true,
                                           child: GestureDetector(
                                             onTap: () async {
+                                              VideoManager().pauseCurrent();
                                               SharedPreferences prefx =
                                                   await SharedPreferences.getInstance();
                                               if (uid != "") {
@@ -1067,6 +1090,12 @@ class _HomeScreenState extends State<HomeScreen> {
                                     "DELETE FROM Likes WHERE user_id = '$uid' AND item_id = '$itemId'",
                                   );
                                 } else {
+                                  SharedPreferences prefx =
+                                      await SharedPreferences.getInstance();
+                                  await AppUtils.makeRequests(
+                                    "query",
+                                    "UPDATE Users SET last_activity = '${DateTime.now()}' WHERE uid = '${prefx.getString("UID")}' ",
+                                  );
                                   await AppUtils.makeRequests(
                                     "query",
                                     "INSERT INTO Likes VALUES(NULL, '$uid', '$itemId', '${DateTime.now()}')",
@@ -1115,11 +1144,12 @@ class _HomeScreenState extends State<HomeScreen> {
                               color: Colors.white,
                               size: 32,
                             ),
-                            onPressed: () {
+                            onPressed: () async {
                               showCommentsBottomSheet(context);
                             },
                           ),
                         ),
+
                         SizedBox(height: 10),
                         Text(
                           commentsCount.toString(),
@@ -1187,6 +1217,12 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 "DELETE FROM Shares WHERE user_id = '${prefx.getString("UID")}' AND item_id = '${items[index]['id']}'",
                                               );
                                             } else {
+                                              SharedPreferences prefx =
+                                                  await SharedPreferences.getInstance();
+                                              await AppUtils.makeRequests(
+                                                "query",
+                                                "UPDATE Users SET last_activity = '${DateTime.now()}' WHERE uid = '${prefx.getString("UID")}' ",
+                                              );
                                               await AppUtils.makeRequests(
                                                 "query",
                                                 "INSERT INTO Shares VALUES(NULL, '${prefx.getString("UID")}', '${items[index]['id']}', '${DateTime.now()}')",
@@ -1222,6 +1258,12 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 "DELETE FROM Shares WHERE user_id = '${prefx.getString("UID")}' AND item_id = '${items[index]['id']}'",
                                               );
                                             } else {
+                                              SharedPreferences prefx =
+                                                  await SharedPreferences.getInstance();
+                                              await AppUtils.makeRequests(
+                                                "query",
+                                                "UPDATE Users SET last_activity = '${DateTime.now()}' WHERE uid = '${prefx.getString("UID")}' ",
+                                              );
                                               await AppUtils.makeRequests(
                                                 "query",
                                                 "INSERT INTO Shares VALUES(NULL, '${prefx.getString("UID")}', '${items[index]['id']}', '${DateTime.now()}')",
@@ -1256,94 +1298,128 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                         SizedBox(height: 10),
-                        Container(
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.4),
-                                blurRadius: 6,
-                                offset: Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: IconButton(
-                            icon: Icon(
-                              cartCount != 0
-                                  ? Iconsax.shopping_cart5
-                                  : Iconsax.shopping_cart,
-                              color: Colors.white,
-                              size: 32,
+                        Visibility(
+                          visible: uid != items[index]['uid'] ? true : false,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.4),
+                                  blurRadius: 6,
+                                  offset: Offset(0, 2),
+                                ),
+                              ],
                             ),
-                            onPressed: () async {
-                              SharedPreferences prefx =
-                                  await SharedPreferences.getInstance();
-
-                              if (prefx.getString("OID") != null) {
-                                var notCartAdded = await AppUtils.makeRequests(
-                                  "fetch",
-                                  "SELECT * FROM Cart WHERE user_id = '${items[index]['uid']}' AND item_id = '${items[index]['id']}' AND order_id = '${prefx.getString("OID")}' ",
+                            child: IconButton(
+                              icon: Icon(
+                                cartCount != 0
+                                    ? Iconsax.shopping_cart5
+                                    : Iconsax.shopping_cart,
+                                color: Colors.white,
+                                size: 32,
+                              ),
+                              onPressed: () async {
+                                // أظهر دايرة تحميل
+                                showModalBottomSheet(
+                                  context: context,
+                                  isDismissible: false,
+                                  enableDrag: false,
+                                  builder: (context) {
+                                    return Container(
+                                      height: 200,
+                                      alignment: Alignment.center,
+                                      child: SpinKitDoubleBounce(
+                                        color: AppTheme.primaryColor,
+                                        size: 30.0,
+                                      ),
+                                    );
+                                  },
                                 );
 
-                                // لو المنتج مش في السلة، ضيفه
-                                if (notCartAdded[0] == null) {
-                                  await AppUtils.makeRequests(
-                                    "query",
-                                    "INSERT INTO Cart VALUES (NULL, '${items[index]['uid']}', '${items[index]['id']}', '0','${prefx.getString("OID")}')",
-                                  );
+                                SharedPreferences prefx =
+                                    await SharedPreferences.getInstance();
 
-                                  // بعد الإضافة، نعمل Fetch تاني عشان نجيب الـ ID الجديد
-                                  notCartAdded = await AppUtils.makeRequests(
+                                if (prefx.getString("OID") != null) {
+                                  var notCartAdded = await AppUtils.makeRequests(
                                     "fetch",
                                     "SELECT * FROM Cart WHERE user_id = '${items[index]['uid']}' AND item_id = '${items[index]['id']}' AND order_id = '${prefx.getString("OID")}' ",
                                   );
-                                }
 
-                                // بعد التأكد إن فيه عنصر فعلاً
-                                try {
-                                  if (notCartAdded[0] != null) {
-                                    CartBottomSheet.showCart(
-                                      context,
-                                      notCartAdded[0]['id'],
-                                      int.parse(cartCount.toString()),
-                                      (newQtt) {
-                                        if (newQtt == 0) {
-                                          AppUtils.makeRequests(
-                                            "query",
-                                            "DELETE FROM Cart WHERE id = '${notCartAdded[0]['id']}'",
-                                          );
-                                        }
-                                        getCartQtt(items[index]['id']);
-                                        getCartCount(items[index]['id']);
-                                      },
+                                  // لو المنتج مش في السلة، ضيفه
+                                  if (notCartAdded[0] == null) {
+                                    await AppUtils.makeRequests(
+                                      "query",
+                                      "INSERT INTO Cart VALUES (NULL, '${items[index]['uid']}', '${items[index]['id']}', '0','${prefx.getString("OID")}')",
                                     );
-                                  } else {
-                                    print('لم يتم العثور على عنصر في السلة');
+
+                                    // بعد الإضافة، نعمل Fetch تاني عشان نجيب الـ ID الجديد
+                                    notCartAdded = await AppUtils.makeRequests(
+                                      "fetch",
+                                      "SELECT * FROM Cart WHERE user_id = '${items[index]['uid']}' AND item_id = '${items[index]['id']}' AND order_id = '${prefx.getString("OID")}' ",
+                                    );
                                   }
-                                } catch (e) {
-                                  print(
-                                    'Error in CartBottomSheet.showCart: $e',
-                                  );
+
+                                  // بعد التأكد إن فيه عنصر فعلاً
+                                  try {
+                                    if (notCartAdded[0] != null) {
+                                      // أغلق دايرة التحميل قبل عرض الـ BottomSheet
+                                      Navigator.of(context).pop();
+                                      Future.delayed(
+                                        Duration(milliseconds: 100),
+                                        () {
+                                          CartBottomSheet.showCart(
+                                            context,
+                                            notCartAdded[0]['id'],
+                                            int.parse(items[index]['qtt']),
+                                            int.parse(cartCount.toString()),
+                                            (newQtt) {
+                                              if (newQtt == 0) {
+                                                AppUtils.makeRequests(
+                                                  "query",
+                                                  "DELETE FROM Cart WHERE id = '${notCartAdded[0]['id']}'",
+                                                );
+                                              }
+                                              getCartQtt(items[index]['id']);
+                                              getCartCount(items[index]['id']);
+                                            },
+                                          );
+                                        },
+                                      );
+                                    } else {
+                                      Navigator.of(context).pop();
+                                      print('لم يتم العثور على عنصر في السلة');
+                                    }
+                                  } catch (e) {
+                                    Navigator.of(context).pop();
+                                    print(
+                                      'Error in CartBottomSheet.showCart: $e',
+                                    );
+                                  }
+                                } else {
+                                  Navigator.of(context).pop();
+                                  context.go('/login');
                                 }
-                              } else {
-                                context.go('/login');
-                              }
-                            },
+                              },
+                            ),
                           ),
                         ),
                         SizedBox(height: 10),
-                        Text(
-                          cartCount.toString(),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            shadows: [
-                              Shadow(
-                                offset: Offset(0, 1),
-                                blurRadius: 10,
-                                color: Colors.black,
-                              ),
-                            ],
+                        Visibility(
+                          visible: uid != items[index]['uid'] ? true : false,
+                          child: Text(
+                            cartCount.toString(),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              shadows: [
+                                Shadow(
+                                  offset: Offset(0, 1),
+                                  blurRadius: 10,
+                                  color: Colors.black,
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                         SizedBox(height: 10),

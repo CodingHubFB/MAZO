@@ -19,6 +19,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mazo/Screens/Home/Home_Screen.dart';
 import 'package:mazo/Screens/Splash/SplashScreen.dart';
+import 'package:mazo/Screens/accessBlock.dart';
+import 'package:mazo/Screens/payGoogleForms.dart';
 import 'package:mazo/test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -38,6 +40,7 @@ final GoRouter router = GoRouter(
   },
   routes: [
     GoRoute(path: '/splash', builder: (context, state) => const SplashScreen()),
+    GoRoute(path: '/block', builder: (context, state) => const AccessBlock()),
     GoRoute(
       path: '/changeLanguage',
       builder: (context, state) => const ChangeLangScreen(),
@@ -62,6 +65,14 @@ final GoRouter router = GoRouter(
       builder: (context, state) {
         final custId = (state.extra as Map?)?['custId'] ?? '';
         return CustomersOrders(custId: custId);
+      },
+    ),
+
+    GoRoute(
+      path: '/payGoogleForm',
+      builder: (context, state) {
+        final totalAmount = (state.extra as Map?)?['totalAmount'] ?? '';
+        return PayGoogleForms(totalAmount: totalAmount);
       },
     ),
 

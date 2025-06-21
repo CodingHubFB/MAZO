@@ -197,11 +197,41 @@ class _CustomersOrdersState extends State<CustomersOrders> {
                             "Your order is under review",
                             "Your order is being reviewed by the seller. We'll notify you once it's confirmed.",
                           );
+                          var requestEmp = await AppUtils.makeRequests(
+                            "fetch",
+                            "SELECT * FROM employees",
+                          );
+                          for (var reqx in requestEmp) {
+                            PushNotificationService.sendNotificationToUser(
+                              reqx['fcm_token'].toString(),
+                              "Your order is under review",
+                              "Your order is being reviewed by the seller. We'll notify you once it's confirmed.",
+                            );
+                          }
+                          await AppUtils.makeRequests(
+                            "query",
+                            "INSERT INTO Notifications VALUES(NULL, 'Your order is under review', 'Your order is being reviewed by the seller. We will notify you once it is confirmed.', '${DateTime.now().toString().split(' ')[0]}', 'false')",
+                          );
                         case "Preparing":
                           PushNotificationService.sendNotificationToUser(
                             user_fcmToken[0]['fcm_token'].toString(),
                             "We're preparing your order!",
                             "Your order is being carefully prepared. Get ready!",
+                          );
+                          var requestEmp = await AppUtils.makeRequests(
+                            "fetch",
+                            "SELECT * FROM employees",
+                          );
+                          for (var reqx in requestEmp) {
+                            PushNotificationService.sendNotificationToUser(
+                              reqx['fcm_token'].toString(),
+                              "We're preparing your order!",
+                              "Your order is being carefully prepared. Get ready!",
+                            );
+                          }
+                          await AppUtils.makeRequests(
+                            "query",
+                            "INSERT INTO Notifications VALUES(NULL, 'We are preparing your order!', 'Your order is being carefully prepared. Get ready!', '${DateTime.now().toString().split(' ')[0]}', 'false')",
                           );
                         case "ReadyToShip":
                           PushNotificationService.sendNotificationToUser(
@@ -209,17 +239,62 @@ class _CustomersOrdersState extends State<CustomersOrders> {
                             "Your order is ready to ship",
                             "The seller finished preparing your order. It’ll be shipped shortly.",
                           );
+                          var requestEmp = await AppUtils.makeRequests(
+                            "fetch",
+                            "SELECT * FROM employees",
+                          );
+                          for (var reqx in requestEmp) {
+                            PushNotificationService.sendNotificationToUser(
+                              reqx['fcm_token'].toString(),
+                              "Your order is ready to ship",
+                              "The seller finished preparing your order. It’ll be shipped shortly.",
+                            );
+                          }
+                          await AppUtils.makeRequests(
+                            "query",
+                            "INSERT INTO Notifications VALUES(NULL, 'Your order is ready to ship', 'The seller finished preparing your order. It’ll be shipped shortly.', '${DateTime.now().toString().split(' ')[0]}', 'false')",
+                          );
                         case "Shipping":
                           PushNotificationService.sendNotificationToUser(
                             user_fcmToken[0]['fcm_token'].toString(),
                             "Your order is on the way",
                             "The delivery driver has picked up your order. It’s on the way!",
                           );
+                          var requestEmp = await AppUtils.makeRequests(
+                            "fetch",
+                            "SELECT * FROM employees",
+                          );
+                          for (var reqx in requestEmp) {
+                            PushNotificationService.sendNotificationToUser(
+                              reqx['fcm_token'].toString(),
+                              "Your order is on the way",
+                              "The delivery driver has picked up your order. It’s on the way!",
+                            );
+                          }
+                          await AppUtils.makeRequests(
+                            "query",
+                            "INSERT INTO Notifications VALUES(NULL, 'Your order is on the way', 'The delivery driver has picked up your order. It’s on the way!', '${DateTime.now().toString().split(' ')[0]}', 'false')",
+                          );
                         case "Delivered":
                           PushNotificationService.sendNotificationToUser(
                             user_fcmToken[0]['fcm_token'].toString(),
                             "Order delivered successfully",
                             "Your order has been delivered. Hope you enjoy it!",
+                          );
+                          var requestEmp = await AppUtils.makeRequests(
+                            "fetch",
+                            "SELECT * FROM employees",
+                          );
+                          for (var reqx in requestEmp) {
+                            PushNotificationService.sendNotificationToUser(
+                              reqx['fcm_token'].toString(),
+                              "Order delivered successfully",
+                              "Your order has been delivered. Hope you enjoy it!",
+                            );
+                          }
+                          await AppUtils.makeRequests(
+                            "query",
+                            "INSERT INTO Notifications VALUES(NULL, 'Order delivered successfully', 'Your order has been delivered. Hope you enjoy it!', '${DateTime.now().toString().split(' ')[0]}', 'false')",
                           );
                           break;
                         default:

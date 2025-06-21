@@ -1,3 +1,5 @@
+import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:mazo/Core/Theme.dart';
 import 'package:mazo/Core/Utils.dart';
 import 'package:mazo/Routes/App_Router.dart' as MyApp;
 import 'package:mazo/provider/App_Provider.dart';
@@ -10,6 +12,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class MediaPickerBottomSheet {
   static final ImagePicker _picker = ImagePicker();
+
   // Method to open Camera for Image or Video
   static Future<XFile?> openCamera(BuildContext context, bool isVideo) async {
     XFile? file;
@@ -53,88 +56,12 @@ class MediaPickerBottomSheet {
     return file;
   }
 
-  static void showPrimaryOptions(BuildContext context, navigate) async {
-    SharedPreferences prefx = await SharedPreferences.getInstance();
-
-    String lang = prefx.getString("Lang")!;
-
-    var results = await AppUtils.makeRequests(
-      "fetch",
-      "SELECT $lang FROM Languages ",
-    );
-
+  static void showPrimaryOptions(BuildContext context, bool navigate) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (BuildContext context) {
-        return Directionality(
-          textDirection: lang == 'arb' ? TextDirection.rtl : TextDirection.ltr,
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(16),
-                topRight: Radius.circular(16),
-              ),
-            ),
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ListTile(
-                  leading: const Icon(Iconsax.camera),
-                  title: Text(results[11][lang]),
-                  onTap: () {
-                    Navigator.pop(context);
-                    showSecondaryOptions(
-                      context,
-                      isVideo: false,
-                      navigate: navigate,
-                      lang: lang,
-                    );
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Iconsax.video),
-                  title: Text(results[12][lang]),
-                  trailing: GestureDetector(
-                    onTap: () {
-                      if (Provider.of<AppProvider>(
-                            context,
-                            listen: false,
-                          ).videoDuration ==
-                          180) {
-                        Provider.of<AppProvider>(
-                          context,
-                          listen: false,
-                        ).setViduration(15);
-                      } else {
-                        Provider.of<AppProvider>(
-                          context,
-                          listen: false,
-                        ).setViduration(180);
-                      }
-                    },
-                    child: Text(
-                      Provider.of<AppProvider>(context).videoDuration == 180
-                          ? '3m'
-                          : '15s',
-                    ),
-                  ),
-                  onTap: () {
-                    Navigator.pop(context);
-                    showSecondaryOptions(
-                      context,
-                      isVideo: true,
-                      navigate: navigate,
-                      lang: lang,
-                    );
-                  },
-                ),
-              ],
-            ),
-          ),
-        );
+      builder: (context) {
+        return MediaPickerPrimaryOptions(navigate: navigate);
       },
     );
   }
@@ -153,14 +80,14 @@ class MediaPickerBottomSheet {
         return FutureBuilder(
           future: AppUtils.makeRequests(
             "fetch",
-            "SELECT $lang FROM Languages ",
+            "SELECT $lang FROM Languages",
           ),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return Container(
                 height: 150,
                 alignment: Alignment.center,
-                child: CircularProgressIndicator(),
+                child: SpinKitDoubleBounce(color: AppTheme.primaryColor, size: 30.0),
               );
             }
 
@@ -245,6 +172,120 @@ class MediaPickerBottomSheet {
           },
         );
       },
+    );
+  }
+}
+
+class MediaPickerPrimaryOptions extends StatefulWidget {
+  final bool navigate;
+  const MediaPickerPrimaryOptions({Key? key, required this.navigate})
+    : super(key: key);
+
+  @override
+  State<MediaPickerPrimaryOptions> createState() =>
+      _MediaPickerPrimaryOptionsState();
+}
+
+class _MediaPickerPrimaryOptionsState extends State<MediaPickerPrimaryOptions> {
+  bool isLoading = true;
+  List? results;
+  String lang = 'arb';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadLanguageData();
+  }
+
+  Future<void> _loadLanguageData() async {
+    final prefx = await SharedPreferences.getInstance();
+    lang = prefx.getString("Lang") ?? 'arb';
+
+    var res = await AppUtils.makeRequests(
+      "fetch",
+      "SELECT $lang FROM Languages",
+    );
+
+    if (mounted) {
+      setState(() {
+        results = res;
+        isLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (isLoading || results == null) {
+      return Container(
+        height: 150,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        ),
+        child: Center(
+          child: SpinKitDoubleBounce(color: AppTheme.primaryColor, size: 30.0),
+        ),
+      );
+    }
+
+    return Directionality(
+      textDirection: lang == 'arb' ? TextDirection.rtl : TextDirection.ltr,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        ),
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Iconsax.camera),
+              title: Text(results![11][lang]),
+              onTap: () {
+                Navigator.pop(context);
+                MediaPickerBottomSheet.showSecondaryOptions(
+                  context,
+                  isVideo: false,
+                  navigate: widget.navigate,
+                  lang: lang,
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Iconsax.video),
+              title: Text(results![12][lang]),
+              trailing: GestureDetector(
+                onTap: () {
+                  var appProvider = Provider.of<AppProvider>(
+                    context,
+                    listen: false,
+                  );
+                  appProvider.setViduration(
+                    appProvider.videoDuration == 60 ? 15 : 60,
+                  );
+                  setState(() {}); // لتحديث الرقم الظاهر
+                },
+                child: Text(
+                  Provider.of<AppProvider>(context).videoDuration == 60
+                      ? '1m'
+                      : '15s',
+                ),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                MediaPickerBottomSheet.showSecondaryOptions(
+                  context,
+                  isVideo: true,
+                  navigate: widget.navigate,
+                  lang: lang,
+                );
+              },
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

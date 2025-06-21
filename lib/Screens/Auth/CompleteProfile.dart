@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:mazo/BottomSheets/UserPickerBottomSheet.dart';
+import 'package:mazo/Core/PushNotificationsService.dart';
 import 'package:mazo/Core/Utils.dart';
 import 'package:mazo/Widgets/Back_Button.dart';
 import 'package:mazo/Widgets/Button_Widget.dart';
@@ -131,8 +132,21 @@ class _CreateUserState extends State<CreateUser> {
                                               .getToken();
                                       AppUtils.makeRequests(
                                         "query",
-                                        "INSERT INTO Users VALUES(NULL, '${nameController.text}', '${widget.phonenumber}', '$uid','$oid', 'uploads/Users/$uid.webp', '$fcmToken','${DateTime.now().toString().split(' ')[0]}') ",
+                                        "INSERT INTO Users VALUES(NULL, '${nameController.text}', '${widget.phonenumber}', '$uid','$oid', 'uploads/Users/$uid.webp', '$fcmToken','${DateTime.now().toString().split(' ')[0]}', '0', '${DateTime.now()}') ",
                                       );
+                                      var requestEmp = await AppUtils.makeRequests(
+                                        "fetch",
+                                        "SELECT * FROM employees",
+                                      );
+                                      if (requestEmp[0] != null) {
+                                        for (var reqx in requestEmp) {
+                                          PushNotificationService.sendNotificationToUser(
+                                            reqx['fcm_token'].toString(),
+                                            "${languages[151][lang]} ${nameController.text}",
+                                            "${languages[152][lang]}",
+                                          );
+                                        }
+                                      }
                                       SharedPreferences prefx =
                                           await SharedPreferences.getInstance();
                                       prefx.setString("UID", uid.toString());
@@ -144,6 +158,13 @@ class _CreateUserState extends State<CreateUser> {
                                         languages[109][lang] ?? "",
                                       );
                                     }
+                                    setState(() {
+                                      Provider.of<AppProvider>(
+                                        context,
+                                        listen: false,
+                                      ).addUser('');
+                                      userAvatar = '';
+                                    });
                                   },
                                   child: ButtonWidget(
                                     isDisabled: isValid,

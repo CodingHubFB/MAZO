@@ -1,7 +1,10 @@
 import 'dart:io';
 
+import 'package:dio/dio.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mazo/BottomSheets/UserMoreBottomSheet.dart';
+import 'package:mazo/Core/Theme.dart';
 import 'package:mazo/Core/Utils.dart';
 import 'package:better_player_plus/better_player_plus.dart';
 import 'package:flutter/material.dart';
@@ -13,6 +16,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:video_compress/video_compress.dart';
+
 class UserProfile extends StatefulWidget {
   final String userId;
   const UserProfile({super.key, required this.userId});
@@ -28,6 +32,7 @@ class _UserProfileState extends State<UserProfile> {
   List languages = [];
   int currentIndex = 0;
   String lang = "eng";
+  Map<String, Future<String?>> thumbnailFutures = {};
 
   String totalItems = "";
   String ordered = "";
@@ -55,7 +60,7 @@ class _UserProfileState extends State<UserProfile> {
     SharedPreferences prefx = await SharedPreferences.getInstance();
     var merchantItemsAll = await AppUtils.makeRequests(
       "fetch",
-      "SELECT Users.Fullname, Users.urlAvatar, Items.`id`,Items.`name`,Items.`price`, Items.media, Items.created_at, Items.Views, Items.uid FROM Users LEFT JOIN Items ON Users.uid = Items.uid WHERE Items.uid = '${widget.userId}' ORDER BY Items.created_at DESC ",
+      "SELECT Users.Fullname, Users.urlAvatar, Items.`id`,Items.`name`,Items.`price`, Items.media, Items.created_at, Items.Views, Items.uid, Items.status FROM Users LEFT JOIN Items ON Users.uid = Items.uid WHERE Items.uid = '${widget.userId}' AND Items.status = '1' ORDER BY Items.created_at DESC ",
     );
     setState(() {
       allMerchantItems = merchantItemsAll;
@@ -77,7 +82,7 @@ class _UserProfileState extends State<UserProfile> {
   Future getCountItenswithUser() async {
     var countItems = await AppUtils.makeRequests(
       "fetch",
-      "SELECT COUNT(Items.id) as count_items FROM Users LEFT JOIN Items ON Users.uid = Items.uid WHERE Items.uid = '${widget.userId}'",
+      "SELECT COUNT(Items.id) as count_items FROM Users LEFT JOIN Items ON Users.uid = Items.uid WHERE Items.uid = '${widget.userId}' AND Items.status = '1'",
     );
     setState(() {
       totalItems = countItems[0]['count_items'];
@@ -112,20 +117,63 @@ class _UserProfileState extends State<UserProfile> {
     });
   }
 
-  Future<String?> generateThumbnailWithVideoCompress(String videoUrl) async {
-  try {
-    final thumbnailFile = await VideoCompress.getFileThumbnail(
-      videoUrl,
-      quality: 75,
-      position: -1,
-    );
-    return thumbnailFile.path;§
-  } catch (e) {
-    print("Error generating thumbnail: $e");
-    return null;
-  }
-}
+  Future<String?> generateSmartThumbnail(String videoUrl, String id) async {
+    try {
+      // الحصول على مسار مؤقت للتخزين
+      final tempDir = await getTemporaryDirectory();
+      final thumbnailPath = '${tempDir.path}/thumb_$id.jpg';
+      final videoPath = '${tempDir.path}/temp_video_$id.mp4';
 
+      // لو الصورة موجودة بالفعل، ارجع المسار فورًا
+      if (await File(thumbnailPath).exists()) {
+        print('🟢 thumbnail already exists: $thumbnailPath');
+        return thumbnailPath;
+      }
+
+      // تحميل الفيديو مؤقتًا
+      final dio = Dio();
+      final response = await dio.download(
+        videoUrl,
+        videoPath,
+        options: Options(
+          responseType: ResponseType.bytes,
+          // timeout: Duration(seconds: 15), // ممكن تضيف تايم اوت لو عايز
+        ),
+      );
+
+      if (response.statusCode != 200) {
+        print("❌ فشل تحميل الفيديو");
+        return null;
+      }
+
+      // توليد صورة مصغرة من الفيديو المحمل
+      final thumbnailFile = await VideoCompress.getFileThumbnail(
+        videoPath,
+        quality: 75,
+        position: -1,
+      );
+
+      if (thumbnailFile == null || thumbnailFile.path.isEmpty) {
+        print("❌ لم يتم توليد الصورة المصغرة");
+        return null;
+      }
+
+      // نسخ الصورة إلى المسار الثابت
+      final savedThumb = await File(thumbnailFile.path).copy(thumbnailPath);
+      print("✅ thumbnail saved: ${savedThumb.path}");
+
+      // حذف الفيديو المؤقت بعد التوليد (اختياري)
+      final tempVideoFile = File(videoPath);
+      if (await tempVideoFile.exists()) {
+        await tempVideoFile.delete();
+      }
+
+      return savedThumb.path;
+    } catch (e) {
+      print("❌ خطأ أثناء توليد الصورة: $e");
+      return null;
+    }
+  }
 
   @override
   void initState() {
@@ -202,7 +250,7 @@ class _UserProfileState extends State<UserProfile> {
                               radius: 50,
                               backgroundImage: NetworkImage(
                                 merchantUsers.isNotEmpty
-                                    ? "https://pos7d.site/MAZO/${merchantUsers[0]['urlAvatar']}"
+                                    ? "https://pos7d.site/MAZO/sys/${merchantUsers[0]['urlAvatar']}"
                                     : "",
                               ),
                             ),
@@ -419,12 +467,16 @@ class _UserProfileState extends State<UserProfile> {
                                           Uri.parse(
                                             firstMedia,
                                           ).path.split('.').last.toLowerCase();
+                                      print(fileExtension);
 
                                       // رابط الميديا
                                       String mediaUrl =
-                                          "https://pos7d.site/MAZO/uploads/Items/${merchantItems[index]['id']}/$firstMedia";
-
-                                      
+                                          "https://pos7d.site/MAZO/sys/uploads/Items/${merchantItems[index]['id']}/$firstMedia";
+                                      thumbnailFutures[merchantItems[index]['id']] ??=
+                                          generateSmartThumbnail(
+                                            mediaUrl,
+                                            merchantItems[index]['id'],
+                                          );
                                       return GestureDetector(
                                         behavior: HitTestBehavior.opaque,
                                         onTap: () {
@@ -432,7 +484,9 @@ class _UserProfileState extends State<UserProfile> {
                                             context,
                                             '/UserProfileHome',
                                             {
-                                              'userProfileId': widget.userId,
+                                              'userProfileId':
+                                                  widget.userId.toString() ??
+                                                  '',
                                               'item_id':
                                                   merchantItems[index]['id'],
                                             },
@@ -442,24 +496,68 @@ class _UserProfileState extends State<UserProfile> {
                                           height: 150,
                                           decoration: BoxDecoration(
                                             color: Colors.grey.shade100,
+                                            borderRadius: BorderRadius.circular(
+                                              3,
+                                            ),
                                           ),
                                           child: Stack(
                                             children: [
                                               // الصورة أو الفيديو
-                                              ClipRRect(
-                                                child:
-                                                    fileExtension == 'mp4'
-                                                        ? 
-                                                        Container()
-                                                        : Image.network(
-                                                          mediaUrl,
+                                              fileExtension == 'webp'
+                                                  ? ClipRRect(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          3,
+                                                        ),
+                                                    child: Image.network(
+                                                      mediaUrl,
+                                                    ),
+                                                  )
+                                                  : FutureBuilder<String?>(
+                                                    future:
+                                                        thumbnailFutures[merchantItems[index]['id']],
+                                                    builder: (
+                                                      context,
+                                                      snapshot,
+                                                    ) {
+                                                      if (snapshot
+                                                              .connectionState ==
+                                                          ConnectionState
+                                                              .waiting) {
+                                                        return Center(
+                                                          child: SpinKitDoubleBounce(
+                                                            color:
+                                                                AppTheme
+                                                                    .primaryColor,
+                                                            size: 30.0,
+                                                          ),
+                                                        );
+                                                      }
+                                                      if (snapshot.hasError ||
+                                                          snapshot.data ==
+                                                              null) {
+                                                        return Center(
+                                                          child: Icon(
+                                                            Icons.broken_image,
+                                                          ),
+                                                        );
+                                                      }
+                                                      return ClipRRect(
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              3,
+                                                            ),
+                                                        child: Image.file(
+                                                          File(snapshot.data!),
                                                           fit: BoxFit.cover,
                                                           width:
                                                               double.infinity,
                                                           height:
                                                               double.infinity,
                                                         ),
-                                              ),
+                                                      );
+                                                    },
+                                                  ),
 
                                               // الـ Gradient من الأسفل
                                               Positioned(

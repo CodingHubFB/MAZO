@@ -16,8 +16,6 @@
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
 		B54024464DB9F8ADEB2A4A12 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 30B77A8FC3885413F41A0610 /* Pods_Runner.framework */; };
-		BC181CBA2DEFAD2B00721C27 /* Flutter.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = BC181CB92DEFAD1C00721C27 /* Flutter.xcframework */; };
-		BC181CBB2DEFAD2C00721C27 /* Flutter.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = BC181CB92DEFAD1C00721C27 /* Flutter.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		E20FE368A96C0C7C7D01045F /* Pods_RunnerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 17016850ADBCD3FB407EDDAA /* Pods_RunnerTests.framework */; };
 /* End PBXBuildFile section */
 
@@ -30,20 +28,6 @@
 			remoteInfo = Runner;
 		};
 /* End PBXContainerItemProxy section */
-
-/* Begin PBXCopyFilesBuildPhase section */
-		9705A1C41CF9048500538489 /* Embed Frameworks */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-				BC181CBB2DEFAD2C00721C27 /* Flutter.xcframework in Embed Frameworks */,
-			);
-			name = "Embed Frameworks";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		0918CD05BFE732A76A9A8484 /* Pods-Runner.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.release.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"; sourceTree = "<group>"; };
@@ -79,7 +63,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				BC181CBA2DEFAD2B00721C27 /* Flutter.xcframework in Frameworks */,
 				B54024464DB9F8ADEB2A4A12 /* Pods_Runner.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -206,7 +189,6 @@
 				97C146EA1CF9000F007C117D /* Sources */,
 				97C146EB1CF9000F007C117D /* Frameworks */,
 				97C146EC1CF9000F007C117D /* Resources */,
-				9705A1C41CF9048500538489 /* Embed Frameworks */,
 				3B06AD1E1E4923F5004D2608 /* Thin Binary */,
 				EADFC42E4783A47CD6F350B0 /* [CP] Embed Pods Frameworks */,
 				B00AF3B2B123BBF4F099D636 /* [CP] Copy Pods Resources */,

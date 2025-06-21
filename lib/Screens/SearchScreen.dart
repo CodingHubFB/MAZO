@@ -16,9 +16,14 @@ class _SearchScreenState extends State<SearchScreen> {
   TextEditingController searchController = TextEditingController();
 
   Future fetchItems() async {
+    SharedPreferences prefx = await SharedPreferences.getInstance();
+    await AppUtils.makeRequests(
+      "query",
+      "UPDATE Users SET last_activity = '${DateTime.now()}' WHERE uid = '${prefx.getString("UID")}' ",
+    );
     var itemsx = await AppUtils.makeRequests(
       "fetch",
-      "SELECT id, name FROM Items WHERE visibility = 'Public'",
+      "SELECT id, name FROM Items WHERE visibility = 'Public' AND status = '1' ",
     );
 
     if (itemsx != null && itemsx is List) {
@@ -82,58 +87,83 @@ class _SearchScreenState extends State<SearchScreen> {
   Widget build(BuildContext context) {
     return Directionality(
       textDirection: lang == 'arb' ? TextDirection.rtl : TextDirection.ltr,
-      child: Scaffold(
-        backgroundColor: Colors.white,
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          leading: IconButton(
-            icon: Icon(
-              lang == 'arb'
-                  ? Iconsax.arrow_circle_right
-                  : Iconsax.arrow_circle_left,
-            ),
-            onPressed: () => Navigator.pop(context),
-          ),
-          title: TextFormField(
-            controller: searchController,
-            onChanged: (value) {
-              final query = value.toLowerCase();
+      child:
+          languages.isEmpty
+              ? Scaffold(backgroundColor: Colors.white)
+              : Scaffold(
+                backgroundColor: Colors.white,
+                appBar: AppBar(
+                  backgroundColor: Colors.transparent,
+                  leading: IconButton(
+                    icon: Icon(
+                      lang == 'arb'
+                          ? Iconsax.arrow_circle_right
+                          : Iconsax.arrow_circle_left,
+                    ),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                  title: TextFormField(
+                    controller: searchController,
+                    onChanged: (value) {
+                      final query = value.toLowerCase();
 
-              setState(() {
-                filteredItems =
-                    allItems.where((item) {
-                      final itemName = item['name'].toString().toLowerCase();
-                      return itemName.contains(query);
-                    }).toList();
-              });
-            },
-            decoration: InputDecoration(
-              filled: true,
-              fillColor: Colors.grey.shade100,
-              hintText: languages[29][lang],
-              contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 20),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(50),
-                borderSide: BorderSide.none,
-              ),
-            ),
-          ),
-        ),
-        body: SingleChildScrollView(
-          child: Column(
-            children:
-                filteredItems.map((item) {
-                  return ListTile(
-                    onTap: () {
-                      Navigator.pop(context, item['id']);
+                      setState(() {
+                        filteredItems =
+                            allItems.where((item) {
+                              final itemName =
+                                  item['name'].toString().toLowerCase();
+                              return itemName.contains(query);
+                            }).toList();
+                      });
                     },
-                    title: Text(item['name']),
-                    trailing: Icon(Iconsax.search_normal),
-                  );
-                }).toList(),
-          ),
-        ),
-      ),
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: Colors.grey.shade100,
+                      hintText: languages[29][lang],
+                      contentPadding: EdgeInsets.symmetric(
+                        vertical: 0,
+                        horizontal: 20,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(50),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                ),
+                body:
+                    filteredItems.isEmpty
+                        ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Iconsax.box_remove, size: 100),
+                              SizedBox(height: 10),
+                              Text(
+                                "No Items Found",
+                                style: TextStyle(
+                                  fontSize: 30,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                        : SingleChildScrollView(
+                          child: Column(
+                            children:
+                                filteredItems.map((item) {
+                                  return ListTile(
+                                    onTap: () {
+                                      Navigator.pop(context, item['id']);
+                                    },
+                                    title: Text(item['name']),
+                                    trailing: Icon(Iconsax.search_normal),
+                                  );
+                                }).toList(),
+                          ),
+                        ),
+              ),
     );
   }
 }

@@ -7,6 +7,7 @@ class CartBottomSheet {
   static void showCart(
     BuildContext context,
     String cartId,
+    int qttData,
     int qtt,
     void Function(int newQtt) onQttChanged,
   ) {
@@ -64,18 +65,16 @@ class CartBottomSheet {
                               ),
                               GestureDetector(
                                 onTap: () {
-                                  setState(() {
-                                    if (count != 0) {
+                                  if (count < qttData) {
+                                    setState(() {
                                       count++;
-                                    } else {
-                                      qtt++;
-                                    }
-                                  });
-                                  AppUtils.makeRequestsViews(
-                                    "query",
-                                    "UPDATE Cart SET qtt = ${count == 0 ? qtt : count} WHERE id = '$cartId' ",
-                                  );
-                                  onQttChanged(count == 0 ? qtt : count);
+                                      AppUtils.makeRequestsViews(
+                                        "query",
+                                        "UPDATE Cart SET qtt = $count WHERE id = '$cartId'",
+                                      );
+                                      onQttChanged(count);
+                                    });
+                                  }
                                 },
                                 child: RectButtonWidget(bicon: Iconsax.add),
                               ),

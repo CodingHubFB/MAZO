@@ -55,6 +55,13 @@ class PushNotificationService {
       'message': {
         'token': deviceToken,
         'notification': {'title': title, 'body': body},
+        'webpush': {
+          'notification': {
+            'title': title,
+            'body': body,
+            'icon': 'https://mazo.com/icon.png', // اختياري
+          },
+        },
       },
     };
 

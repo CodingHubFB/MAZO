@@ -94,6 +94,7 @@ class AppUtils {
           "fetch",
           "SELECT * FROM Followers WHERE buyer_id = '${prefx.getString("UID")}' ",
         );
+        
         for (var req in request) {
           print(req['user_token']);
           PushNotificationService.sendNotificationToUser(
@@ -102,6 +103,7 @@ class AppUtils {
             "Explore the $itemTxt – only on MAZO.",
           );
         }
+        
       }
     } else {
       print("Image Not Uploaded");

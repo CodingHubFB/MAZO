@@ -1,6 +1,8 @@
 import 'dart:io';
 
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:mazo/BottomSheets/MediaPickerBottomSheet.dart';
+import 'package:mazo/Core/Theme.dart';
 import 'package:mazo/Core/Utils.dart';
 import 'package:mazo/Widgets/Input_Widget.dart';
 import 'package:mazo/provider/App_Provider.dart';
@@ -56,7 +58,7 @@ class _EditItemsState extends State<EditItems> {
             filenames
                 .map(
                   (file) =>
-                      "https://pos7d.site/MAZO/uploads/Items/${widget.itemId}/$file",
+                      "https://pos7d.site/MAZO/sys/uploads/Items/${widget.itemId}/$file",
                 )
                 .toList();
       }
@@ -178,7 +180,12 @@ class _EditItemsState extends State<EditItems> {
                   "UPDATE Items SET name = '${itemController.text}', price = '${priceController.text}', description = '${descController.text}', visibility = '$visibility', comments = '$comments',uid = '${prefx.getString("UID")}', created_at = '${DateTime.now()}' WHERE id = '$itemId'",
                 );
                 for (var file in filesToUpload) {
-                  await AppUtils().uploadItems(file, itemId, itemController.text, false);
+                  await AppUtils().uploadItems(
+                    file,
+                    itemId,
+                    itemController.text,
+                    false,
+                  );
                 }
               });
             },
@@ -228,7 +235,10 @@ class _EditItemsState extends State<EditItems> {
                                   final controller = _videoControllers[index];
                                   if (controller == null) {
                                     return Center(
-                                      child: CircularProgressIndicator(),
+                                      child: SpinKitDoubleBounce(
+                                        color: AppTheme.primaryColor,
+                                        size: 30.0,
+                                      ),
                                     );
                                   }
                                   return AspectRatio(

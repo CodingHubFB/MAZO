@@ -22,9 +22,6 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
 
-
-
-
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setPreferredOrientations([
@@ -121,44 +118,62 @@ class _MyAppState extends State<MyApp> {
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
         print('📩 رسالة أثناء التشغيل: ${message.notification?.title}');
         print(message.notification?.body);
-        showNotification(
-          message.notification?.title,
-          message.notification?.body,
-        );
-        final data = message.data;
-        if (data['action'] == 'open_invoice') {
-          print(data['orderId']);
-          AppUtils.sNavigateToReplace(
-            navigatorKey.currentState!.context,
-            '/invoice',
-            {'orderId': data['orderId']},
+        if (message.notification?.title != '' &&
+            message.notification?.body != '') {
+          showNotification(
+            message.notification?.title,
+            message.notification?.body,
           );
+          final data = message.data;
+          // if (data['action'] == 'open_invoice') {
+          //   print(data['orderId']);
+          //   AppUtils.sNavigateToReplace(
+          //     navigatorKey.currentState!.context,
+          //     '/invoice',
+          //     {'orderId': data['orderId'], 'shipId': data['shipId']},
+          //   );
+          // }
         }
       });
       FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-        // final data = message.data;
+        if (message.notification?.title != '' &&
+            message.notification?.body != '') {
+          showNotification(
+            message.notification?.title,
+            message.notification?.body,
+          );
+          final data = message.data;
         // if (data['action'] == 'open_invoice') {
         //   print(data['orderId']);
         //   AppUtils.sNavigateToReplace(
         //     navigatorKey.currentState!.context,
         //     '/invoice',
-        //     {'orderId': data['orderId']},
+        //     {'orderId': data['orderId'], 'shipId': data['shipId']},
         //   );
         // }
+        }
+
+        
       });
       RemoteMessage? initialMessage =
           await FirebaseMessaging.instance.getInitialMessage();
-      // if (initialMessage != null) {
-      //   final data = initialMessage.data;
-      //   if (data['action'] == 'open_invoice') {
-      //     print(data['orderId']);
-      //     AppUtils.sNavigateToReplace(
-      //       navigatorKey.currentState!.context,
-      //       '/invoice',
-      //       {'orderId': data['orderId']},
-      //     );
-      //   }
-      // }
+      if (initialMessage != null) {
+        if (initialMessage.notification?.title != '' && initialMessage.notification?.body != '') {
+          showNotification(
+          initialMessage.notification?.title,
+          initialMessage.notification?.body,
+        );
+        final data = initialMessage.data;
+        // if (data['action'] == 'open_invoice') {
+        //   print(data['orderId']);
+        //   AppUtils.sNavigateToReplace(
+        //     navigatorKey.currentState!.context,
+        //     '/invoice',
+        //     {'orderId': data['orderId'], 'shipId': data['shipId']},
+        //   );
+        // }
+        }
+      }
     } else {
       print('❌ المستخدم رفض الإشعارات');
     }
@@ -173,7 +188,7 @@ class _MyAppState extends State<MyApp> {
       case 'arb':
         return const Locale('ar');
       default:
-        return const Locale('en'); // fallback
+        return const Locale('en');
     }
   }
 

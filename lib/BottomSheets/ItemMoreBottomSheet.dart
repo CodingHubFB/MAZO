@@ -1,5 +1,6 @@
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:mazo/BottomSheets/ItemDetailsBottomSheet.dart';
+import 'package:mazo/BottomSheets/ReportsBottomSheet.dart';
 import 'package:mazo/Core/Theme.dart';
 import 'package:mazo/Core/Utils.dart';
 import 'package:mazo/provider/App_Provider.dart';
@@ -18,6 +19,7 @@ class moreBottomSheet extends StatefulWidget {
 
 class moreBottomSheetState extends State<moreBottomSheet> {
   late Future<Map<String, dynamic>> futureData;
+  String userStx = '';
 
   @override
   void initState() {
@@ -33,14 +35,20 @@ class moreBottomSheetState extends State<moreBottomSheet> {
 
     final results = await AppUtils.makeRequests(
       "fetch",
-      "SELECT uid FROM Items WHERE uid = '$uid'",
+      "SELECT uid FROM Items WHERE uid = '$uid' AND status = '1'",
     );
 
     final ordersResult = await AppUtils.makeRequests(
       "fetch",
       "SELECT cust_id FROM Orders WHERE cust_id = '$uid'",
     );
-    print(results);
+    final usersStatus = await AppUtils.makeRequests(
+      "fetch",
+      "SELECT status FROM Users WHERE uid = '${prefs.getString("UID")}'",
+    );
+    setState(() {
+      userStx = usersStatus[0]['status'];
+    });
     return {
       'UID': uid,
       'OID': oid,
@@ -103,21 +111,36 @@ class moreBottomSheetState extends State<moreBottomSheet> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 if (uid != null)
-                  ListTile(
-                    leading: const Icon(Iconsax.user_octagon),
-                    title: Text(languages[30][lang]),
-                    onTap: () {
-                      AppUtils.sNavigateToReplace(context, '/UserProfile', {
-                        'userId': uid,
-                      });
-                    },
+                  Visibility(
+                    visible: userStx == '0' ? false : true,
+                    child: ListTile(
+                      leading: const Icon(Iconsax.user_octagon),
+                      title: Text(languages[30][lang]),
+                      onTap: () async {
+                        SharedPreferences prefx =
+                            await SharedPreferences.getInstance();
+                        await AppUtils.makeRequests(
+                          "query",
+                          "UPDATE Users SET last_activity = '${DateTime.now()}' WHERE uid = '${prefx.getString("UID")}' ",
+                        );
+                        AppUtils.sNavigateToReplace(context, '/UserProfile', {
+                          'userId': uid,
+                        });
+                      },
+                    ),
                   ),
                 // طلبات العملاء: لما يكون مسجل وعنده أصناف
                 if (uid != null && hasItems != null)
                   ListTile(
                     leading: const Icon(Iconsax.task_square),
                     title: Text(languages[31][lang]),
-                    onTap: () {
+                    onTap: () async {
+                      SharedPreferences prefx =
+                          await SharedPreferences.getInstance();
+                      await AppUtils.makeRequests(
+                        "query",
+                        "UPDATE Users SET last_activity = '${DateTime.now()}' WHERE uid = '${prefx.getString("UID")}' ",
+                      );
                       context.go('/customersOrders');
                     },
                   ),
@@ -127,7 +150,13 @@ class moreBottomSheetState extends State<moreBottomSheet> {
                   ListTile(
                     leading: const Icon(Iconsax.receipt),
                     title: Text(languages[32][lang]),
-                    onTap: () {
+                    onTap: () async {
+                      SharedPreferences prefx =
+                          await SharedPreferences.getInstance();
+                      await AppUtils.makeRequests(
+                        "query",
+                        "UPDATE Users SET last_activity = '${DateTime.now()}' WHERE uid = '${prefx.getString("UID")}' ",
+                      );
                       AppUtils.sNavigateToReplace(context, '/customersOrders', {
                         'custId': uid,
                       });
@@ -135,26 +164,67 @@ class moreBottomSheetState extends State<moreBottomSheet> {
                   ),
 
                 if (uid != null && oid != null)
-                  ListTile(
-                    leading: const Icon(Iconsax.shopping_cart),
-                    title: Text(languages[33][lang]),
-                    onTap: () {
-                      context.go('/cart');
-                    },
+                  Visibility(
+                    visible: userStx == '0' ? false : true,
+                    child: ListTile(
+                      leading: const Icon(Iconsax.shopping_cart),
+                      title: Text(languages[33][lang]),
+                      onTap: () async {
+                        SharedPreferences prefx =
+                            await SharedPreferences.getInstance();
+                        await AppUtils.makeRequests(
+                          "query",
+                          "UPDATE Users SET last_activity = '${DateTime.now()}' WHERE uid = '${prefx.getString("UID")}' ",
+                        );
+                        context.go('/cart');
+                      },
+                    ),
                   ),
                 ListTile(
                   leading: const Icon(Iconsax.note),
                   title: Text(languages[34][lang]),
-                  onTap: () {
-                    showItemDetailsBottomSheet(
-                      context,
-                      itemId:
-                          Provider.of<AppProvider>(
-                            context,
-                            listen: false,
-                          ).itemId.toString(),
-                    );
+                  onTap: () async {
+                    if (Provider.of<AppProvider>(
+                          context,
+                          listen: false,
+                        ).itemId !=
+                        0) {
+                      SharedPreferences prefx =
+                          await SharedPreferences.getInstance();
+                      await AppUtils.makeRequests(
+                        "query",
+                        "UPDATE Users SET last_activity = '${DateTime.now()}' WHERE uid = '${prefx.getString("UID")}' ",
+                      );
+                      showItemDetailsBottomSheet(
+                        context,
+                        itemId:
+                            Provider.of<AppProvider>(
+                              context,
+                              listen: false,
+                            ).itemId.toString(),
+                      );
+                    }
                   },
+                ),
+                Visibility(
+                  visible: userStx == '0' ? false : true,
+                  child: ListTile(
+                    leading: const Icon(Iconsax.flag),
+                    title: Text(languages[127][lang]),
+                    onTap: () async {
+                      SharedPreferences prefx =
+                          await SharedPreferences.getInstance();
+                      await AppUtils.makeRequests(
+                        "query",
+                        "UPDATE Users SET last_activity = '${DateTime.now()}' WHERE uid = '${prefx.getString("UID")}' ",
+                      );
+                      Navigator.pop(context);
+                      showModalBottomSheet(
+                        context: context,
+                        builder: (context) => reportsBottomSheet(),
+                      );
+                    },
+                  ),
                 ),
                 if (uid != null)
                   ListTile(
@@ -162,6 +232,10 @@ class moreBottomSheetState extends State<moreBottomSheet> {
                     title: Text(languages[35][lang]),
                     onTap: () async {
                       final prefs = await SharedPreferences.getInstance();
+                      await AppUtils.makeRequests(
+                        "query",
+                        "UPDATE Users SET last_activity = '${DateTime.now()}' WHERE uid = '${prefs.getString("UID")}' ",
+                      );
                       prefs.remove("UID");
                       context.go('/splash');
                     },

@@ -16,6 +16,28 @@ class PaymentSuccess extends StatefulWidget {
 }
 
 class _PaymentSuccessState extends State<PaymentSuccess> {
+  String lang = "eng";
+  List languages = [];
+
+  Future getLang() async {
+    SharedPreferences prefx = await SharedPreferences.getInstance();
+
+    setState(() {
+      lang = prefx.getString("Lang")!;
+      getLangDB();
+    });
+  }
+
+  Future getLangDB() async {
+    var results = await AppUtils.makeRequests(
+      "fetch",
+      "SELECT $lang FROM Languages ",
+    );
+    setState(() {
+      languages = results;
+    });
+  }
+
   Future renewOID() async {
     SharedPreferences prefx = await SharedPreferences.getInstance();
     int oid = 1000 + Random().nextInt(9999);
@@ -29,11 +51,19 @@ class _PaymentSuccessState extends State<PaymentSuccess> {
   }
 
   @override
+  void initState() {
+    getLang();
+    super.initState();
+  }
+
+  
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return languages.isEmpty ? Scaffold(backgroundColor: Colors.white,) : Scaffold(
       backgroundColor: Colors.green.shade50,
       appBar: AppBar(
-        title: const Text("Success"),
+        title: Text("${languages[77][lang]}"),
         backgroundColor: Colors.green,
       ),
       body: Center(
@@ -42,9 +72,9 @@ class _PaymentSuccessState extends State<PaymentSuccess> {
           children: [
             Icon(Iconsax.tick_circle, color: Colors.green, size: 100),
             const SizedBox(height: 20),
-            const Text("Payment Successful!", style: TextStyle(fontSize: 24)),
+            Text("${languages[77][lang]}", style: TextStyle(fontSize: 24)),
             const SizedBox(height: 10),
-            const Text("Thank you for your purchase."),
+            Text("${languages[78][lang]}"),
             const SizedBox(height: 10),
             Container(
               margin: EdgeInsets.symmetric(horizontal: 10),
@@ -56,7 +86,7 @@ class _PaymentSuccessState extends State<PaymentSuccess> {
                         renewOID();
                         context.go('/home');
                       },
-                      child: ButtonWidget(btnText: "Back to Home"),
+                      child: ButtonWidget(btnText: "${languages[79][lang]}"),
                     ),
                   ),
                   SizedBox(width: 10),
@@ -74,7 +104,7 @@ class _PaymentSuccessState extends State<PaymentSuccess> {
                           },
                         );
                       },
-                      child: ButtonWidget(btnText: "Print Invoice"),
+                      child: ButtonWidget(btnText: "${languages[80][lang]}"),
                     ),
                   ),
                 ],

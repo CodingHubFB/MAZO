@@ -93,17 +93,36 @@ class _SplashScreenState extends State<SplashScreen> {
     });
   }
 
-  void _navigateToHome() {
-    Future.delayed(const Duration(seconds: 2), () {
-      if (!mounted) return;
-      context.go('/home');
-    });
+  void _navigateToHome() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var userStatus = await AppUtils.makeRequests(
+      "fetch",
+      "SELECT status FROM Users WHERE uid = '${prefs.getString("UID")}' ",
+    );
+    if (userStatus[0] != null) {
+      if (userStatus[0]['status'] == '2') {
+        Future.delayed(const Duration(seconds: 2), () {
+          if (!mounted) return;
+          context.go('/block');
+        });
+      } else {
+        Future.delayed(const Duration(seconds: 2), () {
+          if (!mounted) return;
+          context.go('/home');
+        });
+      }
+    } else {
+      Future.delayed(const Duration(seconds: 2), () {
+        if (!mounted) return;
+        context.go('/home');
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return languages.isEmpty
-        ? const Scaffold(body: Center(child: CircularProgressIndicator()))
+        ? const Scaffold(body: Center(child: SpinKitDoubleBounce(color: AppTheme.primaryColor, size: 30.0),))
         : Scaffold(
           body: Center(
             child: Column(

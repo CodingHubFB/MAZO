@@ -28,6 +28,28 @@ class _InvoiceWebViewState extends State<InvoiceWebView> {
   WebViewController? _controller;
   String? paymentSessionUrl;
 
+  String lang = "eng";
+  List languages = [];
+
+  Future getLang() async {
+    SharedPreferences prefx = await SharedPreferences.getInstance();
+
+    setState(() {
+      lang = prefx.getString("Lang")!;
+      getLangDB();
+    });
+  }
+
+  Future getLangDB() async {
+    var results = await AppUtils.makeRequests(
+      "fetch",
+      "SELECT $lang FROM Languages ",
+    );
+    setState(() {
+      languages = results;
+    });
+  }
+
   Future<void> getInvoiceScreen() async {
     SharedPreferences prefx = await SharedPreferences.getInstance();
     setState(() {
@@ -35,19 +57,17 @@ class _InvoiceWebViewState extends State<InvoiceWebView> {
           WebViewController()
             ..loadRequest(
               Uri.parse(
-                "https://pos7d.site/MAZO/Mazo_Invoice.php?uid=${widget.payment == 'Customer' ? '' : prefx.getString("UID")}&oid=${widget.orderId}&shipId=${widget.shipId != "" ? widget.shipId : Provider.of<AppProvider>(context, listen: false).shipId}&custId=${widget.custId}&k=${DateTime.now().millisecondsSinceEpoch}",
+                "https://pos7d.site/MAZO/Mazo_Invoice.php?uid=${widget.payment == 'Customer' ? '' : prefx.getString("UID")}&oid=${widget.orderId}&shipId=${widget.shipId != "" ? widget.shipId : Provider.of<AppProvider>(context, listen: false).shipId}&custId=${widget.custId}&lang=$lang&k=${DateTime.now().millisecondsSinceEpoch}",
               ),
             )
             ..setJavaScriptMode(JavaScriptMode.unrestricted);
     });
   }
 
-  // UID ---> 5440
-  // OID ---> 7318
-
   @override
   void initState() {
     super.initState();
+    getLang();
     getInvoiceScreen();
   }
 
@@ -60,9 +80,6 @@ class _InvoiceWebViewState extends State<InvoiceWebView> {
           onPressed: () async {
             SharedPreferences prefx = await SharedPreferences.getInstance();
             if (widget.payment == "") {
-              // AppUtils.sNavigateToReplace(context, '/customersOrders', {
-              //   'custId': prefx.getString("UID")!,
-              // });
               context.go('/customersOrders');
             } else {
               context.go('/paymentSuccess');
@@ -72,18 +89,15 @@ class _InvoiceWebViewState extends State<InvoiceWebView> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Iconsax.refresh), // أيقونة الريفريش
+            icon: const Icon(Iconsax.refresh),
             onPressed: () {
-              _controller?.reload(); // ريفريش للويب فيو
+              _controller?.reload();
             },
           ),
         ],
         forceMaterialTransparency: true,
         centerTitle: true,
-        title: const Text(
-          "Your Invoice",
-          style: TextStyle(color: Colors.black),
-        ),
+        title: Text(languages[80][lang], style: TextStyle(color: Colors.black)),
         backgroundColor: Colors.transparent,
       ),
       body: WebViewWidget(controller: _controller!),

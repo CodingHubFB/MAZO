@@ -46,7 +46,8 @@ class PushNotificationServiceOrders {
     String deviceToken,
     String title,
     String body,
-    String orderId
+    String orderId,
+    String shipId,
   ) async {
     SharedPreferences prefx = await SharedPreferences.getInstance();
     final String accessToken = await getAccessToken();
@@ -60,7 +61,8 @@ class PushNotificationServiceOrders {
         'notification': {'title': title, 'body': body},
         'data': {
           "action": "open_invoice",
-          "orderId": orderId
+          "orderId": orderId,
+          "shipId": shipId,
         },
       },
     };

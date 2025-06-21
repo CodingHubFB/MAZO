@@ -95,8 +95,31 @@ class _ShippingOrdersState extends State<ShippingOrders> {
     }
   }
 
+  String lang = "eng";
+  List languages = [];
+
+  Future getLang() async {
+    SharedPreferences prefx = await SharedPreferences.getInstance();
+
+    setState(() {
+      lang = prefx.getString("Lang")!;
+      getLangDB();
+    });
+  }
+
+  Future getLangDB() async {
+    var results = await AppUtils.makeRequests(
+      "fetch",
+      "SELECT $lang FROM Languages ",
+    );
+    setState(() {
+      languages = results;
+    });
+  }
+
   @override
   void initState() {
+    getLang();
     getCurrentUser();
     getShippingAddresses();
     super.initState();
@@ -106,259 +129,284 @@ class _ShippingOrdersState extends State<ShippingOrders> {
   Widget build(BuildContext context) {
     getArabCities();
     final isKeyboardOpen = MediaQuery.of(context).viewInsets.bottom != 0;
-    return Scaffold(
-      resizeToAvoidBottomInset: true,
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        leading: IconButton(
-          onPressed: () {
-            context.go('/CheckoutSummary');
-          },
-          icon: Icon(Iconsax.arrow_circle_left),
-        ),
-        forceMaterialTransparency: true,
-        centerTitle: true,
-        title: Text("Shipping Details", style: TextStyle(color: Colors.black)),
-        backgroundColor: Colors.white,
-      ),
-      body: CustomScrollView(
-        slivers: [
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(10),
-              child: Column(
-                children: [
-                  ...List.generate(addressesList.length, (i) {
-                    return GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          isActive = i;
-                          Provider.of<AppProvider>(
-                            context,
-                            listen: false,
-                          ).setSelectedAddress(addressesList[i]);
-                          Provider.of<AppProvider>(
-                            context,
-                            listen: false,
-                          ).setShipId(addressesList[i]['id']);
-                          print(
-                            Provider.of<AppProvider>(
-                              context,
-                              listen: false,
-                            ).shipId,
+    return languages.isEmpty
+        ? Scaffold(backgroundColor: Colors.white)
+        : Directionality(
+          textDirection: lang == 'arb' ? TextDirection.rtl : TextDirection.ltr,
+          child: Scaffold(
+            resizeToAvoidBottomInset: true,
+            backgroundColor: Colors.white,
+            appBar: AppBar(
+              leading: IconButton(
+                onPressed: () {
+                  context.go('/CheckoutSummary');
+                },
+                icon: Icon(Iconsax.arrow_circle_left),
+              ),
+              forceMaterialTransparency: true,
+              centerTitle: true,
+              title: Text(
+                languages[58][lang],
+                style: TextStyle(color: Colors.black),
+              ),
+              backgroundColor: Colors.white,
+            ),
+            body: CustomScrollView(
+              slivers: [
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.all(10),
+                    child: Column(
+                      children: [
+                        ...List.generate(addressesList.length, (i) {
+                          return GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                isActive = i;
+                                Provider.of<AppProvider>(
+                                  context,
+                                  listen: false,
+                                ).setSelectedAddress(addressesList[i]);
+                                Provider.of<AppProvider>(
+                                  context,
+                                  listen: false,
+                                ).setShipId(addressesList[i]['id']);
+                                print(
+                                  Provider.of<AppProvider>(
+                                    context,
+                                    listen: false,
+                                  ).shipId,
+                                );
+                              });
+                            },
+                            child: Directionality(
+                              textDirection: TextDirection.ltr,
+                              child: SizedBox(
+                                width: double.maxFinite,
+                                height: 80,
+                                child: Card(
+                                  shape: RoundedRectangleBorder(
+                                    side:
+                                        isActive == i
+                                            ? BorderSide(
+                                              color: Colors.black,
+                                              width: 2,
+                                            )
+                                            : BorderSide.none,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  color: Colors.grey.shade100,
+                                  elevation: 0,
+                                  child: Row(
+                                    children: [
+                                      SizedBox(width: 10),
+                                      Icon(Iconsax.location),
+                                      SizedBox(width: 10),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            Text(
+                                              "${addressesList[i]['City']}, ${addressesList[i]['Country']}",
+                                            ),
+                                            Text(
+                                              "Zone: ${addressesList[i]['Zone Number']}, Street: ${addressesList[i]['Street Number']}, Building: ${addressesList[i]['Building Number']}",
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
                           );
-                        });
-                      },
-                      child: SizedBox(
-                        width: double.maxFinite,
-                        height: 80,
-                        child: Card(
-                          shape: RoundedRectangleBorder(
-                            side:
-                                isActive == i
-                                    ? BorderSide(color: Colors.black, width: 2)
-                                    : BorderSide.none,
-                            borderRadius: BorderRadius.circular(8),
+                        }),
+                        SizedBox(height: 10),
+                        GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              openAddressForm = !openAddressForm;
+                            });
+                          },
+                          child: ButtonWidget(
+                            btnText:
+                                openAddressForm
+                                    ? languages[60][lang]
+                                    : languages[59][lang],
                           ),
-                          color: Colors.grey.shade100,
-                          elevation: 0,
-                          child: Row(
+                        ),
+                        SizedBox(height: 10),
+                      ],
+                    ),
+                  ),
+                ),
+
+                if (openAddressForm)
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      child: Column(
+                        children: [
+                          InputWidget(
+                            icontroller: fullName,
+                            iHint: languages[7][lang],
+                          ),
+                          SizedBox(height: 15),
+                          InputWidget(
+                            icontroller: mobileNumber,
+                            iHint: languages[2][lang],
+                            ikeyboardType: TextInputType.phone,
+                          ),
+                          SizedBox(height: 15),
+                          InputWidget(
+                            icontroller: email,
+                            iHint: languages[61][lang],
+                          ),
+                          SizedBox(height: 15),
+                          DropdownFormMenuField(
+                            iHint: languages[62][lang],
+                            dItems:
+                                arabCountries.map((country) {
+                                  return DropdownMenuItem<String>(
+                                    value: country,
+                                    child: Text(country),
+                                  );
+                                }).toList(),
+                            onChanged: (val) {
+                              setState(() {
+                                selectedCountry = val!;
+                                getArabCities();
+                              });
+                            },
+                          ),
+                          SizedBox(height: 15),
+                          DropdownFormMenuField(
+                            iHint: languages[63][lang],
+                            dItems:
+                                arabCities.map((city) {
+                                  return DropdownMenuItem<String>(
+                                    value: city,
+                                    child: Text(city),
+                                  );
+                                }).toList(),
+                            onChanged: (val) {
+                              setState(() {
+                                selectedCity = val!;
+                              });
+                            },
+                          ),
+                          SizedBox(height: 15),
+                          Row(
                             children: [
-                              SizedBox(width: 10),
-                              Icon(Iconsax.location),
-                              SizedBox(width: 10),
                               Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      "${addressesList[i]['City']}, ${addressesList[i]['Country']}",
-                                    ),
-                                    Text(
-                                      "Zone: ${addressesList[i]['Zone Number']}, Street: ${addressesList[i]['Street Number']}, Building: ${addressesList[i]['Building Number']}",
-                                    ),
-                                  ],
+                                child: InputWidget(
+                                  icontroller: zoneNo,
+                                  iHint: languages[64][lang],
+                                  ikeyboardType: TextInputType.number,
+                                ),
+                              ),
+                              SizedBox(width: 15),
+                              Expanded(
+                                child: InputWidget(
+                                  icontroller: streetNo,
+                                  iHint: languages[65][lang],
+                                  ikeyboardType: TextInputType.number,
                                 ),
                               ),
                             ],
                           ),
-                        ),
-                      ),
-                    );
-                  }),
-                  SizedBox(height: 10),
-                  GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        openAddressForm = !openAddressForm;
-                      });
-                    },
-                    child: ButtonWidget(
-                      btnText:
-                          openAddressForm ? "Close Form" : "Add New Address",
-                    ),
-                  ),
-                  SizedBox(height: 10),
-                ],
-              ),
-            ),
-          ),
-
-          if (openAddressForm)
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                child: Column(
-                  children: [
-                    InputWidget(icontroller: fullName, iHint: "Full Name"),
-                    SizedBox(height: 15),
-                    InputWidget(
-                      icontroller: mobileNumber,
-                      iHint: "Mobile Number",
-                      ikeyboardType: TextInputType.phone,
-                    ),
-                    SizedBox(height: 15),
-                    InputWidget(icontroller: email, iHint: "Email"),
-                    SizedBox(height: 15),
-                    DropdownFormMenuField(
-                      iHint: "Country / Region",
-                      dItems:
-                          arabCountries.map((country) {
-                            return DropdownMenuItem<String>(
-                              value: country,
-                              child: Text(country),
-                            );
-                          }).toList(),
-                      onChanged: (val) {
-                        setState(() {
-                          selectedCountry = val!;
-                          getArabCities();
-                        });
-                      },
-                    ),
-                    SizedBox(height: 15),
-                    DropdownFormMenuField(
-                      iHint: "City",
-                      dItems:
-                          arabCities.map((city) {
-                            return DropdownMenuItem<String>(
-                              value: city,
-                              child: Text(city),
-                            );
-                          }).toList(),
-                      onChanged: (val) {
-                        setState(() {
-                          selectedCity = val!;
-                        });
-                      },
-                    ),
-                    SizedBox(height: 15),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: InputWidget(
-                            icontroller: zoneNo,
-                            iHint: "Zone Number",
+                          SizedBox(height: 15),
+                          InputWidget(
+                            icontroller: buildNo,
+                            iHint: languages[66][lang],
                             ikeyboardType: TextInputType.number,
                           ),
-                        ),
-                        SizedBox(width: 15),
-                        Expanded(
-                          child: InputWidget(
-                            icontroller: streetNo,
-                            iHint: "Street Number",
-                            ikeyboardType: TextInputType.number,
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 15),
-                    InputWidget(
-                      icontroller: buildNo,
-                      iHint: "Building Number",
-                      ikeyboardType: TextInputType.number,
-                    ),
-                    Container(
-                      alignment: Alignment.centerLeft,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Checkbox(
-                            value: saveAddress,
-                            onChanged: (value) {
-                              setState(() {
-                                saveAddress = value!;
-                                isActive = 0;
-                              });
-                            },
-                          ),
-                          SizedBox(width: 8),
-                          Text(
-                            "Save This Address",
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
+                          Container(
+                            alignment: Alignment.centerLeft,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Checkbox(
+                                  value: saveAddress,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      saveAddress = value!;
+                                      isActive = 0;
+                                    });
+                                  },
+                                ),
+                                SizedBox(width: 8),
+                                Text(
+                                  languages[67][lang],
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
+                          SizedBox(height: 70),
                         ],
                       ),
                     ),
-                    SizedBox(height: 70),
-                  ],
-                ),
-              ),
+                  ),
+              ],
             ),
-        ],
-      ),
 
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton:
-          isKeyboardOpen
-              ? null
-              : GestureDetector(
-                onTap: () async {
-                  if (isActive != -1) {
-                    SharedPreferences prefx =
-                        await SharedPreferences.getInstance();
+            floatingActionButtonLocation:
+                FloatingActionButtonLocation.centerDocked,
+            floatingActionButton:
+                isKeyboardOpen
+                    ? null
+                    : GestureDetector(
+                      onTap: () async {
+                        if (isActive != -1) {
+                          SharedPreferences prefx =
+                              await SharedPreferences.getInstance();
 
-                    if (saveAddress == true) {
-                      // 1. Add the record
-                      await AppUtils.makeRequests(
-                        "query",
-                        "INSERT INTO Shipping_Orders VALUES(NULL, '${fullName.text}', '${mobileNumber.text}', '${email.text}', '$selectedCountry', '$selectedCity', '${zoneNo.text}', '${streetNo.text}', '${buildNo.text}', '${prefx.getString("UID")}','${prefx.getString("OID")}')",
-                      );
+                          if (saveAddress == true) {
+                            // 1. Add the record
+                            await AppUtils.makeRequests(
+                              "query",
+                              "INSERT INTO Shipping_Orders VALUES(NULL, '${fullName.text}', '${mobileNumber.text}', '${email.text}', '$selectedCountry', '$selectedCity', '${zoneNo.text}', '${streetNo.text}', '${buildNo.text}', '${prefx.getString("UID")}','${prefx.getString("OID")}')",
+                            );
 
-                      // 2. Get the latest inserted record for this user and order
-                      var latestAddress = await AppUtils.makeRequests(
-                        "fetch",
-                        "SELECT * FROM Shipping_Orders WHERE uid = '${prefx.getString("UID")}' AND oid = '${prefx.getString("OID")}' ORDER BY id DESC LIMIT 1",
-                      );
+                            // 2. Get the latest inserted record for this user and order
+                            var latestAddress = await AppUtils.makeRequests(
+                              "fetch",
+                              "SELECT * FROM Shipping_Orders WHERE uid = '${prefx.getString("UID")}' AND oid = '${prefx.getString("OID")}' ORDER BY id DESC LIMIT 1",
+                            );
 
-                      print("Latest address added:");
-                      Provider.of<AppProvider>(
-                        context,
-                        listen: false,
-                      ).setSelectedAddress(latestAddress[0]);
-                      Provider.of<AppProvider>(
-                        context,
-                        listen: false,
-                      ).setShipId(latestAddress[0]['id']);
-                    }
-                    context.go('/checkout');
-                  } else {
-                    AppUtils.snackBarShowing(
-                      context,
-                      "Please Choose The Address.",
-                    );
-                  }
-                },
+                            print("Latest address added:");
+                            Provider.of<AppProvider>(
+                              context,
+                              listen: false,
+                            ).setSelectedAddress(latestAddress[0]);
+                            Provider.of<AppProvider>(
+                              context,
+                              listen: false,
+                            ).setShipId(latestAddress[0]['id']);
+                          }
+                          context.go('/checkout');
+                        } else {
+                          AppUtils.snackBarShowing(
+                            context,
+                            languages[122][lang],
+                          );
+                        }
+                      },
 
-                child: SizedBox(
-                  height: 60,
-                  child: ButtonWidget(btnText: "Checkout"),
-                ),
-              ),
-    );
+                      child: SizedBox(
+                        height: 60,
+                        child: ButtonWidget(btnText: languages[68][lang]),
+                      ),
+                    ),
+          ),
+        );
   }
 }

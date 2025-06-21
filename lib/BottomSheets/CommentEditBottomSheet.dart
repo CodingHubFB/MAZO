@@ -43,7 +43,10 @@ class SimpleMoreComment {
                       "fetch",
                       "SELECT id, comment FROM Comments WHERE id = '$commentId'",
                     );
-                    Navigator.pop(context, currentComment);
+                    Navigator.pop(context, {
+                      'deleted': false,
+                      'cComment': currentComment,
+                    });
                   },
                 ),
                 ListTile(

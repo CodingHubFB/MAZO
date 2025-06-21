@@ -1,10 +1,13 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mazo/BottomSheets/MediaPickerBottomSheet.dart';
 import 'package:mazo/Core/PushNotificationsService.dart';
+import 'package:mazo/Core/Theme.dart';
 import 'package:mazo/Core/Utils.dart';
+import 'package:mazo/Widgets/Back_Button.dart';
 import 'package:mazo/Widgets/Input_Widget.dart';
 import 'package:mazo/provider/App_Provider.dart';
 import 'package:better_player_plus/better_player_plus.dart';
@@ -12,6 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:path/path.dart' as p;
 
 class AddItems extends StatefulWidget {
   const AddItems({super.key});
@@ -23,10 +27,25 @@ class AddItems extends StatefulWidget {
 class _AddItemsState extends State<AddItems> {
   TextEditingController itemController = TextEditingController();
   TextEditingController priceController = TextEditingController();
+  TextEditingController qttController = TextEditingController();
+  TextEditingController sellerController = TextEditingController();
+  TextEditingController mazoController = TextEditingController();
   TextEditingController descController = TextEditingController();
   final Map<int, BetterPlayerController> _videoControllers = {};
   String lang = "eng";
   List languages = [];
+  List currentUser = [];
+  List<String> uploadedFiles = [];
+
+  double mazoPercentage = 0.30; // أو أي نسبة تانية
+
+  void onPriceChanged(String value) {
+    double totalPrice = double.tryParse(value) ?? 0;
+    mazoController.text = (totalPrice * mazoPercentage).toString();
+    sellerController.text =
+        (totalPrice - double.parse(mazoController.text)).toString();
+    setState(() {});
+  }
 
   Future getLang() async {
     SharedPreferences prefx = await SharedPreferences.getInstance();
@@ -47,9 +66,21 @@ class _AddItemsState extends State<AddItems> {
     });
   }
 
+  Future getCurrentUser() async {
+    SharedPreferences prefx = await SharedPreferences.getInstance();
+    var results = await AppUtils.makeRequests(
+      "fetch",
+      "SELECT Fullname FROM Users WHERE uid = '${prefx.getString("UID")}'",
+    );
+    setState(() {
+      currentUser = results;
+    });
+  }
+
   @override
   void initState() {
     getLang();
+    getCurrentUser();
     super.initState();
   }
 
@@ -153,78 +184,110 @@ class _AddItemsState extends State<AddItems> {
               : Directionality(
                 textDirection:
                     lang == 'arb' ? TextDirection.rtl : TextDirection.ltr,
-                child: Scaffold(
-                  backgroundColor: Colors.white,
-                  appBar: AppBar(
-                    backgroundColor: Colors.transparent,
-                    forceMaterialTransparency: true,
-                    title: Text(
-                      languages[15][lang],
-                      style: TextStyle(color: Colors.black),
-                    ),
-                    centerTitle: true,
-                    actions: [
-                      IconButton(
-                        onPressed: () async {
-                          if (addItemsFormKey.currentState!.validate()) {
-                            setState(() {
-                              isUploading = true;
-                              uploadProgress = 0.0;
-                            });
-
-                            SharedPreferences prefx =
-                                await SharedPreferences.getInstance();
-                            String visibility =
-                                provx.isVisibility ? "Public" : "Private";
-                            String comments = provx.isComments ? "On" : "Off";
-                            final filesToUpload = List<String>.from(mediaList);
-                            final itemId = provx.itemId;
-
-                            // حفظ البيانات الأول
-                            await AppUtils.makeRequests(
-                              "query",
-                              "UPDATE Items SET name = '${itemController.text}', price = '${priceController.text}', description = '${descController.text}', visibility = '$visibility', comments = '$comments', uid = '${prefx.getString("UID")}', created_at = '${DateTime.now()}' WHERE id = '$itemId'",
-                            );
-
-                            // رفع الملفات بعد الحفظ
-                            await uploadAll(
-                              filesToUpload,
-                              itemId.toString(),
-                              itemController.text,
-                            );
-                            var resultsPush = await AppUtils.makeRequests(
-                              "fetch",
-                              "SELECT * FROM Followers WHERE buyer_id = '${prefx.getString("UID")}' ",
-                            );
-                            if (resultsPush[0] != null) {
-                              for (var resultPo in resultsPush) {
-                                PushNotificationService.sendNotificationToUser(
-                                  resultPo['user_token'],
-                                  languages[117][lang],
-                                  itemController.text.toString(),
-                                );
-                              }
-                            }
-
-                            // تنظيف وإعادة الضبط
-                            mediaList.clear();
-                            setState(() {
-                              isUploading = false;
-                            });
-
-                            context.go('/home');
-                          }
-                        },
-                        icon: Transform.flip(
-                          flipX: lang == 'arb' ? true : false,
-                          child: Icon(Iconsax.send_1),
+                child: Stack(
+                  children: [
+                    Scaffold(
+                      backgroundColor: Colors.white,
+                      appBar: AppBar(
+                        backgroundColor: Colors.transparent,
+                        forceMaterialTransparency: true,
+                        title: Text(
+                          languages[15][lang],
+                          style: TextStyle(color: Colors.black),
                         ),
+                        centerTitle: true,
+                        actions: [
+                          IconButton(
+                            onPressed: () async {
+                              if (addItemsFormKey.currentState!.validate()) {
+                                setState(() {
+                                  isUploading = true;
+                                  uploadProgress = 0.0;
+                                });
+                                SharedPreferences prefx =
+                                    await SharedPreferences.getInstance();
+                                String visibility =
+                                    provx.isVisibility ? "Public" : "Private";
+                                String comments =
+                                    provx.isComments ? "On" : "Off";
+                                final filesToUpload = List<String>.from(
+                                  mediaList,
+                                );
+                                final itemId = provx.itemId;
+
+                                // حفظ بيانات العنصر أولًا
+                                await AppUtils.makeRequests(
+                                  "query",
+                                  "UPDATE Items SET name = '${itemController.text}', price = '${priceController.text}', qtt = '${qttController.text}', description = '${descController.text}', visibility = '$visibility', comments = '$comments', uid = '${prefx.getString("UID")}', created_at = '${DateTime.now()}' WHERE id = '$itemId'",
+                                );
+
+                                await uploadAll(
+                                  filesToUpload,
+                                  itemId.toString(),
+                                  itemController.text,
+                                );
+
+                                // ارسال اشعارات المتابعين
+                                var resultsPush = await AppUtils.makeRequests(
+                                  "fetch",
+                                  "SELECT * FROM Followers WHERE buyer_id = '${prefx.getString("UID")}'",
+                                );
+                                if (resultsPush[0] != null) {
+                                  for (var resultPo in resultsPush) {
+                                    PushNotificationService.sendNotificationToUser(
+                                      resultPo['user_token'],
+                                      "${languages[117][lang]} ${currentUser[0]['Fullname']}",
+                                      itemController.text.toString(),
+                                    );
+                                  }
+                                }
+
+                                // ارسال اشعارات الموظفين
+                                var requestEmp = await AppUtils.makeRequests(
+                                  "fetch",
+                                  "SELECT * FROM employees",
+                                );
+                                if (requestEmp[0] != null) {
+                                  for (var reqx in requestEmp) {
+                                    PushNotificationService.sendNotificationToUser(
+                                      reqx['fcm_token'].toString(),
+                                      "${languages[117][lang]} ${currentUser[0]['Fullname']}",
+                                      itemController.text.toString(),
+                                    );
+                                  }
+                                }
+
+                                // تحديث آخر نشاط
+                                await AppUtils.makeRequests(
+                                  "query",
+                                  "UPDATE Users SET last_activity = '${DateTime.now()}' WHERE uid = '${prefx.getString("UID")}'",
+                                );
+
+                                // اضافة اشعار جديد
+                                await AppUtils.makeRequests(
+                                  "query",
+                                  "INSERT INTO Notifications VALUES(NULL, '${languages[117][lang]} ${currentUser[0]['Fullname']}', '${itemController.text.toString()}', '${DateTime.now().toString().split(' ')[0]}', 'false')",
+                                );
+
+                                // تنظيف القائمة واعادة الحالة
+                                mediaList.clear();
+                                setState(() {
+                                  isUploading = false;
+                                  uploadProgress = 0.0;
+                                });
+
+                                // اذهب للصفحة الرئيسية
+                                context.go('/home');
+                              }
+                            },
+                            icon: Transform.flip(
+                              flipX: lang == 'arb' ? true : false,
+                              child: Icon(Iconsax.send_1),
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                  body: Stack(
-                    children: [
-                      SingleChildScrollView(
+                      body: SingleChildScrollView(
                         child: Container(
                           margin: EdgeInsets.symmetric(horizontal: 10),
                           child: Column(
@@ -288,8 +351,12 @@ class _AddItemsState extends State<AddItems> {
                                                       _videoControllers[index];
                                                   if (controller == null) {
                                                     return Center(
-                                                      child:
-                                                          CircularProgressIndicator(),
+                                                      child: SpinKitDoubleBounce(
+                                                        color:
+                                                            AppTheme
+                                                                .primaryColor,
+                                                        size: 30.0,
+                                                      ),
                                                     );
                                                   }
                                                   return AspectRatio(
@@ -439,12 +506,94 @@ class _AddItemsState extends State<AddItems> {
                                 icontroller: priceController,
                                 iHint: languages[18][lang],
                                 ikeyboardType: TextInputType.number,
+                                ichanged: (val) {
+                                  onPriceChanged(val);
+                                },
                                 iValid: (val) {
                                   if (val!.isEmpty) {
                                     return languages[19][lang];
                                   }
                                   return null;
                                 },
+                              ),
+                              SizedBox(height: 20),
+                              Row(
+                                children: [
+                                  // زرار الإضافة
+                                  Expanded(
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        int current =
+                                            int.tryParse(qttController.text) ??
+                                            0;
+                                        current++;
+                                        qttController.text = current.toString();
+                                      },
+                                      child: RectButtonWidget(
+                                        bicon: Iconsax.add,
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(width: 10),
+                                  // حقل الرقم
+                                  Expanded(
+                                    flex: 3,
+                                    child: InputWidget(
+                                      icontroller: qttController,
+                                      iHint: languages[125][lang],
+                                      ikeyboardType: TextInputType.number,
+                                      ichanged: (val) {},
+                                      iValid: (val) {
+                                        if (val!.isEmpty) {
+                                          return languages[126][lang];
+                                        }
+                                        return null;
+                                      },
+                                    ),
+                                  ),
+                                  SizedBox(width: 10),
+                                  // زرار التنقيص
+                                  Expanded(
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        int current =
+                                            int.tryParse(qttController.text) ??
+                                            0;
+                                        if (current > 0) {
+                                          current--;
+                                          qttController.text =
+                                              current.toString();
+                                        }
+                                      },
+                                      child: RectButtonWidget(
+                                        bicon: Iconsax.minus,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+
+                              SizedBox(height: 20),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: InputWidget(
+                                      icontroller: sellerController,
+                                      iHint: languages[123][lang],
+                                      ikeyboardType: TextInputType.number,
+                                      isRead: true,
+                                    ),
+                                  ),
+                                  SizedBox(width: 20),
+                                  Expanded(
+                                    child: InputWidget(
+                                      icontroller: mazoController,
+                                      iHint: languages[124][lang],
+                                      ikeyboardType: TextInputType.number,
+                                      isRead: true,
+                                    ),
+                                  ),
+                                ],
                               ),
                               SizedBox(height: 20),
                               InputWidget(
@@ -523,8 +672,11 @@ class _AddItemsState extends State<AddItems> {
                           ),
                         ),
                       ),
-                      if (isUploading)
-                        Container(
+                    ),
+                    if (isUploading)
+                      Scaffold(
+                        backgroundColor: Colors.transparent,
+                        body: Container(
                           color: Colors.black.withOpacity(0.5),
                           child: Center(
                             child: Column(
@@ -538,6 +690,7 @@ class _AddItemsState extends State<AddItems> {
                                     Colors.blue,
                                   ),
                                 ),
+
                                 SizedBox(height: 12),
                                 Text(
                                   "${(uploadProgress * 100).toStringAsFixed(0)}%",
@@ -555,8 +708,8 @@ class _AddItemsState extends State<AddItems> {
                             ),
                           ),
                         ),
-                    ],
-                  ),
+                      ),
+                  ],
                 ),
               ),
     );

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:share_plus/share_plus.dart';
+import 'package:mazo/Core/PushNotificationsService.dart';
 
 class TestScreen extends StatefulWidget {
   const TestScreen({super.key});
@@ -15,18 +15,11 @@ class _TestScreenState extends State<TestScreen> {
       body: Center(
         child: ElevatedButton(
           onPressed: () async {
-            try {
-              final box = context.findRenderObject() as RenderBox?;
-              await SharePlus.instance.share(
-                ShareParams(
-                  text: 'Check this out!',
-                  sharePositionOrigin:
-                      box!.localToGlobal(Offset.zero) & box.size,
-                ),
-              );
-            } catch (e) {
-              print("Share Error: $e");
-            }
+            PushNotificationService.sendNotificationToUser(
+              "ddVBwWQUACgXWPggriMLZb:APA91bHTXKas6QCHcboDxlqNu0i3RSZTXDgKBahSGcQFUFcgFaMqNAiNkIIhrMmgSp6JLevV3hwyAmYbfK9v4NL1LoFHyoMQxgJen9YepEyVZoggouXx0u8",
+              "Welcome Employee",
+              "I am User",
+            );
           },
           child: Text("Test Share on iOS"),
         ),

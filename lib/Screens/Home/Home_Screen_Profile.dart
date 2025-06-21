@@ -174,7 +174,7 @@ class _HomeScreenProfileState extends State<HomeScreenProfile> {
   Future getItems() async {
     var itemsx = await AppUtils.makeRequests(
       "fetch",
-      "SELECT * FROM Items WHERE visibility = 'Public' AND id = '${widget.itemId}'",
+      "SELECT * FROM Items WHERE visibility = 'Public' AND status = '1' AND id = '${widget.itemId}'",
     );
 
     // getCurrentMerchant();
@@ -201,7 +201,7 @@ class _HomeScreenProfileState extends State<HomeScreenProfile> {
       if (firstMedia.endsWith('.mp4')) {
         // ✅ أول media هو فيديو، نهيّئ ونشغّل
         initializeVideoController(
-          "https://pos7d.site/MAZO/uploads/Items/${firstItem['id']}/$firstMedia",
+          "https://pos7d.site/MAZO/sys/uploads/Items/${firstItem['id']}/$firstMedia",
           0,
           0,
         );
@@ -466,7 +466,7 @@ class _HomeScreenProfileState extends State<HomeScreenProfile> {
             if (!videoControllers.containsKey(index) ||
                 !videoControllers[index]!.containsKey(0)) {
               initializeVideoController(
-                "https://pos7d.site/MAZO/uploads/Items/${path['id']}/$firstMedia",
+                "https://pos7d.site/MAZO/sys/uploads/Items/${path['id']}/$firstMedia",
                 index,
                 0,
               );
@@ -514,7 +514,7 @@ class _HomeScreenProfileState extends State<HomeScreenProfile> {
                     if (!videoControllers.containsKey(index) ||
                         !videoControllers[index]!.containsKey(0)) {
                       initializeVideoController(
-                        "https://pos7d.site/MAZO/uploads/Items/${items[index]['id']}/$mediaFile",
+                        "https://pos7d.site/MAZO/sys/uploads/Items/${items[index]['id']}/$mediaFile",
                         index,
                         jndexChange,
                       );
@@ -548,7 +548,7 @@ class _HomeScreenProfileState extends State<HomeScreenProfile> {
                         videoControllers[index]![jndex]?.isVideoInitialized() !=
                             true) {
                       initializeVideoController(
-                        "https://pos7d.site/MAZO/uploads/Items/${items[index]['id']}/$mediaUrl",
+                        "https://pos7d.site/MAZO/sys/uploads/Items/${items[index]['id']}/$mediaUrl",
                         index,
                         jndex,
                       );
@@ -643,7 +643,7 @@ class _HomeScreenProfileState extends State<HomeScreenProfile> {
                                       child: SpinKitCircle(color: Colors.white),
                                     ))
                                 : Image.network(
-                                  "https://pos7d.site/MAZO/uploads/Items/${items[index]['id']}/$mediaUrl",
+                                  "https://pos7d.site/MAZO/sys/uploads/Items/${items[index]['id']}/$mediaUrl",
                                   fit: BoxFit.cover,
                                 ),
                       ),
