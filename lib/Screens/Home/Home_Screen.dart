@@ -508,6 +508,7 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: Colors.black,
         extendBodyBehindAppBar: true,
         appBar: AppBar(
+          forceMaterialTransparency: true,
           clipBehavior: Clip.none,
           backgroundColor: Colors.transparent,
           title: Container(
@@ -515,7 +516,7 @@ class _HomeScreenState extends State<HomeScreen> {
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
+                  color: Colors.black.withOpacity(0.1),
                   blurRadius: 10,
                   offset: Offset(0, 0),
                 ),
@@ -531,15 +532,35 @@ class _HomeScreenState extends State<HomeScreen> {
                 VideoManager().pauseCurrent();
                 SharedPreferences prefx = await SharedPreferences.getInstance();
                 if (prefx.getString("UID") != null) {
-                  if (currentUsers[0]['status'] == '1') {
-                    MediaPickerBottomSheet.showPrimaryOptions(
-                      MyApp.navigatorKey.currentContext!,
-                      true,
-                    );
-                  } else if (currentUsers[0]['status'] == '2') {
-                    AppUtils.snackBarShowing(context, languages[150][lang]);
+                  print(currentUsers);
+
+                  if (currentUsers.isNotEmpty) {
+                    if (currentUsers[0]['status'] == '1') {
+                      MediaPickerBottomSheet.showPrimaryOptions(
+                        MyApp.navigatorKey.currentContext!,
+                        true,
+                      );
+                    } else if (currentUsers[0]['status'] == '2') {
+                      AppUtils.snackBarShowing(context, languages[150][lang]);
+                    } else {
+                      AppUtils.snackBarShowing(context, languages[149][lang]);
+                    }
                   } else {
-                    AppUtils.snackBarShowing(context, languages[149][lang]);
+                    var usrStx = await AppUtils.makeRequests(
+                      "fetch",
+                      "SELECT status FROM Users WHERE uid = '${prefx.getString("UID")}'",
+                    );
+                    print(usrStx);
+                    if (usrStx[0]['status'] == '1') {
+                      MediaPickerBottomSheet.showPrimaryOptions(
+                        MyApp.navigatorKey.currentContext!,
+                        true,
+                      );
+                    } else if (usrStx[0]['status'] == '2') {
+                      AppUtils.snackBarShowing(context, languages[150][lang]);
+                    } else {
+                      AppUtils.snackBarShowing(context, languages[149][lang]);
+                    }
                   }
                 } else {
                   context.go('/login');
@@ -553,7 +574,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
+                    color: Colors.black.withOpacity(0.1),
                     blurRadius: 10,
                     offset: Offset(0, 0),
                   ),
@@ -576,7 +597,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
+                    color: Colors.black.withOpacity(0.1),
                     blurRadius: 10,
                     offset: Offset(0, 0),
                   ),
@@ -702,7 +723,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     itemCount:
                         items[index]['media'].toString().split(',').length,
                     onPageChanged: (mediaIndex) async {
-                      // وقف الفيديو اللي فات
                       disposeVideoController(index, currentJndex);
                       videoControllers[activeItemIndex]?[activeMediaIndex]
                           ?.pause();
@@ -869,7 +889,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           end: Alignment.bottomCenter,
                           colors: [
                             Colors.transparent,
-                            Colors.black.withOpacity(0.7),
+                            Colors.black.withOpacity(0.5),
                             Colors.black.withOpacity(0.9),
                           ],
                         ),
@@ -1030,7 +1050,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.4),
+                                color: Colors.black.withOpacity(0.1),
                                 blurRadius: 6,
                                 offset: Offset(0, 2),
                               ),
@@ -1132,7 +1152,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.4),
+                                color: Colors.black.withOpacity(0.1),
                                 blurRadius: 6,
                                 offset: Offset(0, 2),
                               ),
@@ -1173,7 +1193,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 shape: BoxShape.circle,
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.4),
+                                    color: Colors.black.withOpacity(0.1),
                                     blurRadius: 6,
                                     offset: Offset(0, 2),
                                   ),
@@ -1305,7 +1325,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               shape: BoxShape.circle,
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.4),
+                                  color: Colors.black.withOpacity(0.1),
                                   blurRadius: 6,
                                   offset: Offset(0, 2),
                                 ),

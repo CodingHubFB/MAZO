@@ -62,7 +62,7 @@ class _OTPScreenState extends State<OTPScreen> {
   @override
   void initState() {
     getLang();
-    getSMS();
+    // getSMS();
     super.initState();
   }
 
