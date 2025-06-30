@@ -40,6 +40,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool showCenterIconLikes = false;
   double likeIconScale = 0.0;
   double likeIconOpacity = 0.0;
+  Timer? _activityTimer;
   bool isLoading = false;
   IconData centerIconLikes = Iconsax.like_1;
   Duration? videoDuration;
@@ -318,12 +319,22 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future getItems() async {
-    // SharedPreferences prefx = await SharedPreferences.getInstance();
     // getCurrentMerchant(prefx.getString("UID"));
     var itemsx = await AppUtils.makeRequests(
       "fetch",
       "SELECT * FROM Items WHERE visibility = 'Public' AND  status = '1' AND name != '' AND description != 'null' ${widget.productId != null ? "AND id = '${widget.productId}'" : ""}",
     );
+
+    _activityTimer = Timer.periodic(Duration(seconds: 30), (_) async {
+      final uid = await SharedPreferences.getInstance().then(
+        (prefs) => prefs.getString("UID"),
+      );
+
+      await AppUtils.makeRequests(
+        "query",
+        "UPDATE Users SET last_activity = '${DateTime.now().toUtc().toIso8601String()}' WHERE uid = '$uid'",
+      );
+    });
 
     if (itemsx != null && itemsx.isNotEmpty && itemsx is List) {
       itemsx.shuffle();
@@ -490,6 +501,7 @@ class _HomeScreenState extends State<HomeScreen> {
         controller.dispose();
       }
     }
+    _activityTimer?.cancel();
     super.dispose();
   }
 

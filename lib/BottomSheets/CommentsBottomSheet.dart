@@ -1,6 +1,5 @@
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:mazo/BottomSheets/CommentEditBottomSheet.dart';
 import 'package:mazo/Core/PushNotificationsService.dart';
 import 'package:mazo/Core/Theme.dart';
 import 'package:mazo/Core/Utils.dart';
@@ -12,17 +11,18 @@ import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+String comex = "";
+String comIdx = "0";
 void showCommentsBottomSheet(BuildContext context) async {
   TextEditingController commentController = TextEditingController();
   String editingCommentId = "";
   String editingCommentText = "";
+  String comType = "original";
 
   Future<Map<String, dynamic>> fetchInitialData(BuildContext context) async {
     final commentsResponse = await AppUtils.makeRequests(
       "fetch",
-      "SELECT Users.Fullname, Users.urlAvatar, Comments.`id`, Comments.`comment`, Users.uid "
-          "FROM Users RIGHT JOIN Comments ON Users.uid COLLATE utf8_unicode_ci = Comments.user_id COLLATE utf8_unicode_ci "
-          "WHERE item_id = '${Provider.of<AppProvider>(context, listen: false).itemId.toString()}' ORDER BY id DESC",
+      "SELECT Users.Fullname, Users.urlAvatar, Comments.`id`, Comments.`comment`,Comments.`type`,Comments.`parent_id`, Users.uid FROM Users RIGHT JOIN Comments ON Users.uid COLLATE utf8_unicode_ci = Comments.user_id COLLATE utf8_unicode_ci WHERE item_id = '${Provider.of<AppProvider>(context, listen: false).itemId.toString()}' ORDER BY type ASC, id DESC",
     );
 
     final prefs = await SharedPreferences.getInstance();
@@ -177,119 +177,80 @@ void showCommentsBottomSheet(BuildContext context) async {
                                               ],
                                             ),
                                           )
-                                      : ListView.builder(
-                                        itemCount: commentsList.length,
-                                        itemBuilder: (context, index) {
-                                          final comment = commentsList[index];
-                                          return Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                              vertical: 12.0,
-                                            ),
-                                            child: Row(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.center,
-                                              children: [
-                                                Expanded(
-                                                  child: Row(
+                                      : ListView(
+                                        children:
+                                            commentsList
+                                                .where(
+                                                  (c) =>
+                                                      c['type'] == 'original',
+                                                )
+                                                .map<Widget>((comment) {
+                                                  final replies =
+                                                      commentsList
+                                                          .where(
+                                                            (r) =>
+                                                                r['type'] ==
+                                                                    'replied' &&
+                                                                r['parent_id']
+                                                                        .toString() ==
+                                                                    comment['id']
+                                                                        .toString(),
+                                                          )
+                                                          .toList();
+
+                                                  return Column(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
                                                     children: [
-                                                      CircleAvatar(
-                                                        radius: 20,
-                                                        backgroundColor:
-                                                            Colors.grey[300],
-                                                        backgroundImage:
-                                                            comment["urlAvatar"] !=
-                                                                    null
-                                                                ? NetworkImage(
-                                                                  "https://pos7d.site/MAZO/sys/${comment["urlAvatar"]}",
-                                                                )
-                                                                : null,
-                                                        child:
-                                                            comment["urlAvatar"] ==
-                                                                    null
-                                                                ? Icon(
-                                                                  Icons.person,
-                                                                  color:
-                                                                      Colors
-                                                                          .grey,
-                                                                )
-                                                                : null,
+                                                      buildCommentTile(
+                                                        comment,
+                                                        currentUserId: uid,
+                                                        onReply: (
+                                                          type,
+                                                          name,
+                                                          comId,
+                                                        ) {
+                                                          setState(() {
+                                                            comType = type;
+                                                            comex = name;
+                                                            comIdx = comId;
+                                                          });
+                                                        },
                                                       ),
-                                                      SizedBox(width: 10),
-                                                      Expanded(
-                                                        child: Column(
-                                                          crossAxisAlignment:
-                                                              CrossAxisAlignment
-                                                                  .start,
-                                                          children: [
-                                                            Text(
-                                                              comment["Fullname"] ??
-                                                                  "مستخدم غير معروف",
-                                                              style: TextStyle(
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .bold,
-                                                                fontSize: 14,
+                                                      ...replies.map(
+                                                        (reply) => Padding(
+                                                          padding:
+                                                              const EdgeInsets.only(
+                                                                right: 40.0,
                                                               ),
-                                                            ),
-                                                            SizedBox(height: 4),
-                                                            Text(
-                                                              comment["comment"],
-                                                              style: TextStyle(
-                                                                fontSize: 13,
+                                                          child:
+                                                              buildCommentTile(
+                                                                reply,
+                                                                currentUserId:
+                                                                    uid,
+                                                                isReply: true,
+                                                                onReply: (
+                                                                  type,
+                                                                  name,
+                                                                  comId,
+                                                                ) {
+                                                                  setState(() {
+                                                                    comType =
+                                                                        type;
+                                                                    comex =
+                                                                        name;
+                                                                    comIdx =
+                                                                        comId;
+                                                                  });
+                                                                },
                                                               ),
-                                                            ),
-                                                          ],
                                                         ),
                                                       ),
                                                     ],
-                                                  ),
-                                                ),
-                                                Visibility(
-                                                  visible:
-                                                      uid == comment['uid']
-                                                          ? true
-                                                          : false,
-                                                  child: IconButton(
-                                                    onPressed: () async {
-                                                      var result =
-                                                          await SimpleMoreComment.showItemComments(
-                                                            context,
-                                                            comment['id'],
-                                                          );
-                                                      if (result != null &&
-                                                          result['deleted'] ==
-                                                              true) {
-                                                        var comments = await AppUtils.makeRequests(
-                                                          "fetch",
-                                                          "SELECT Users.Fullname, Users.urlAvatar, Comments.`id`, Comments.`comment` "
-                                                              "FROM Users RIGHT JOIN Comments ON Users.uid COLLATE utf8_unicode_ci = Comments.user_id COLLATE utf8_unicode_ci "
-                                                              "WHERE item_id = '${Provider.of<AppProvider>(context, listen: false).itemId.toString()}'",
-                                                        );
-                                                        setState(() {
-                                                          commentsList =
-                                                              comments;
-                                                        });
-                                                      } else {
-                                                        setState(() {
-                                                          editingCommentText =
-                                                              result['cComment'][0]['comment'];
-                                                          editingCommentId =
-                                                              result['cComment'][0]['id'];
-                                                          commentController
-                                                                  .text =
-                                                              editingCommentText;
-                                                        });
-                                                      }
-                                                    },
-                                                    icon: Icon(
-                                                      Iconsax.more_square,
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          );
-                                        },
+                                                  );
+                                                })
+                                                .toList(),
                                       ),
                             ),
                             Visibility(
@@ -299,8 +260,21 @@ void showCommentsBottomSheet(BuildContext context) async {
                                   ).commentBool !=
                                   "OFF",
                               child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
                                 children: [
-                                  SizedBox(height: 10),
+                                  comType == 'original'
+                                      ? Container()
+                                      : Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 8.0,
+                                        ),
+                                        child: Container(
+                                          alignment: Alignment.centerRight,
+                                          child: Text(
+                                            "${results[158][lang]} $comex",
+                                          ),
+                                        ),
+                                      ),
                                   InputWidget(
                                     isRead: uid == '',
                                     icontroller: commentController,
@@ -340,10 +314,17 @@ void showCommentsBottomSheet(BuildContext context) async {
                                               "query",
                                               "UPDATE Users SET last_activity = '${DateTime.now()}' WHERE uid = '${prefx.getString("UID")}' ",
                                             );
-                                            await AppUtils.makeRequests(
-                                              "query",
-                                              "INSERT INTO Comments VALUES(NULL, '${commentController.text}', '$uid', '${Provider.of<AppProvider>(context, listen: false).itemId}', '${DateTime.now()}')",
-                                            );
+                                            if (comType == 'replied') {
+                                              await AppUtils.makeRequests(
+                                                "query",
+                                                "INSERT INTO Comments VALUES(NULL, '${commentController.text}', '$uid', '${Provider.of<AppProvider>(context, listen: false).itemId}', '${DateTime.now()}', 'replied', '$comIdx')",
+                                              );
+                                            } else {
+                                              await AppUtils.makeRequests(
+                                                "query",
+                                                "INSERT INTO Comments(comment, user_id, item_id, created_at, type) VALUES('${commentController.text}', '$uid', '${Provider.of<AppProvider>(context, listen: false).itemId}', '${DateTime.now()}', 'original')",
+                                              );
+                                            }
                                             final commentsNow =
                                                 await AppUtils.makeRequests(
                                                   "fetch",
@@ -424,3 +405,347 @@ void showCommentsBottomSheet(BuildContext context) async {
     },
   );
 }
+
+Widget buildCommentTile(
+  Map comment, {
+  required String currentUserId,
+  required Function(String comType, String comex, String comId) onReply,
+  bool isReply = false,
+}) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 8.0),
+    child: Row(
+      children: [
+        CircleAvatar(
+          radius: 20,
+          backgroundImage:
+              comment["urlAvatar"] != null
+                  ? NetworkImage(
+                    "https://pos7d.site/MAZO/sys/${comment["urlAvatar"]}",
+                  )
+                  : null,
+          child: comment["urlAvatar"] == null ? Icon(Icons.person) : null,
+        ),
+        SizedBox(width: 10),
+        Expanded(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    comment["Fullname"] ?? "مستخدم غير معروف",
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                  ),
+                  SizedBox(height: 4),
+                  Text(comment["comment"], style: TextStyle(fontSize: 13)),
+                ],
+              ),
+              if (!isReply && comment['uid'] != currentUserId)
+                GestureDetector(
+                  onTap: () async {
+                    var currentCommentReply = await AppUtils.makeRequests(
+                      "fetch",
+                      "SELECT Fullname FROM Users WHERE uid = '${comment['uid']}'",
+                    );
+                    final name = currentCommentReply[0]['Fullname'];
+                    onReply("replied", name, comment['id']);
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 6.0),
+                    child: Icon(Iconsax.undo, size: 18),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+
+// final comment = commentsList[index];
+//                                           return Column(
+//                                             children: [
+//                                               comment['type'] != 'original'
+//                                                   ? Padding(
+//                                                     padding:
+//                                                         const EdgeInsets.only(
+//                                                           top: 12.0,
+//                                                           bottom: 12.0,
+//                                                           right: 30,
+//                                                         ),
+//                                                     child: Row(
+//                                                       crossAxisAlignment:
+//                                                           CrossAxisAlignment
+//                                                               .center,
+//                                                       children: [
+//                                                         Expanded(
+//                                                           child: Row(
+//                                                             children: [
+//                                                               CircleAvatar(
+//                                                                 radius: 20,
+//                                                                 backgroundColor:
+//                                                                     Colors
+//                                                                         .grey[300],
+//                                                                 backgroundImage:
+//                                                                     comment["urlAvatar"] !=
+//                                                                             null
+//                                                                         ? NetworkImage(
+//                                                                           "https://pos7d.site/MAZO/sys/${comment["urlAvatar"]}",
+//                                                                         )
+//                                                                         : null,
+//                                                                 child:
+//                                                                     comment["urlAvatar"] ==
+//                                                                             null
+//                                                                         ? Icon(
+//                                                                           Icons
+//                                                                               .person,
+//                                                                           color:
+//                                                                               Colors.grey,
+//                                                                         )
+//                                                                         : null,
+//                                                               ),
+//                                                               SizedBox(
+//                                                                 width: 10,
+//                                                               ),
+//                                                               Expanded(
+//                                                                 child: Column(
+//                                                                   crossAxisAlignment:
+//                                                                       CrossAxisAlignment
+//                                                                           .start,
+//                                                                   children: [
+//                                                                     Text(
+//                                                                       comment["Fullname"] ??
+//                                                                           "مستخدم غير معروف",
+//                                                                       style: TextStyle(
+//                                                                         fontWeight:
+//                                                                             FontWeight.bold,
+//                                                                         fontSize:
+//                                                                             14,
+//                                                                       ),
+//                                                                     ),
+//                                                                     SizedBox(
+//                                                                       height: 4,
+//                                                                     ),
+//                                                                     Text(
+//                                                                       comment["comment"],
+//                                                                       style: TextStyle(
+//                                                                         fontSize:
+//                                                                             13,
+//                                                                       ),
+//                                                                     ),
+//                                                                   ],
+//                                                                 ),
+//                                                               ),
+//                                                             ],
+//                                                           ),
+//                                                         ),
+//                                                         Visibility(
+//                                                           visible:
+//                                                               uid == comment['uid']
+//                                                                   ? true
+//                                                                   : false,
+//                                                           child: IconButton(
+//                                                             onPressed: () async {
+//                                                               var result =
+//                                                                   await SimpleMoreComment.showItemComments(
+//                                                                     context,
+//                                                                     comment['id'],
+//                                                                   );
+
+//                                                               if (result?['replied'] ==
+//                                                                   true) {
+//                                                                 var currentCommentReply =
+//                                                                     await AppUtils.makeRequests(
+//                                                                       "fetch",
+//                                                                       "SELECT Fullname FROM Users WHERE uid = '${result['cCommentRepl'][0]['user_id']}'",
+//                                                                     );
+//                                                                 setState(() {
+//                                                                   comType =
+//                                                                       'replied';
+//                                                                   comex =
+//                                                                       currentCommentReply[0]['Fullname'];
+//                                                                 });
+//                                                               } else if (result !=
+//                                                                       null &&
+//                                                                   result['deleted'] ==
+//                                                                       true) {
+//                                                                 var comments = await AppUtils.makeRequests(
+//                                                                   "fetch",
+//                                                                   "SELECT Users.Fullname, Users.urlAvatar, Comments.`id`, Comments.`comment` "
+//                                                                       "FROM Users RIGHT JOIN Comments ON Users.uid COLLATE utf8_unicode_ci = Comments.user_id COLLATE utf8_unicode_ci "
+//                                                                       "WHERE item_id = '${Provider.of<AppProvider>(context, listen: false).itemId.toString()}'",
+//                                                                 );
+//                                                                 setState(() {
+//                                                                   commentsList =
+//                                                                       comments;
+//                                                                 });
+//                                                               } else {
+//                                                                 setState(() {
+//                                                                   editingCommentText =
+//                                                                       result['cComment'][0]['comment'];
+//                                                                   editingCommentId =
+//                                                                       result['cComment'][0]['id'];
+//                                                                   commentController
+//                                                                           .text =
+//                                                                       editingCommentText;
+//                                                                 });
+//                                                               }
+//                                                             },
+//                                                             icon: Icon(
+//                                                               Iconsax
+//                                                                   .more_square,
+//                                                             ),
+//                                                           ),
+//                                                         ),
+//                                                       ],
+//                                                     ),
+//                                                   )
+//                                                   : Padding(
+//                                                     padding:
+//                                                         const EdgeInsets.symmetric(
+//                                                           vertical: 12.0,
+//                                                         ),
+//                                                     child: Row(
+//                                                       crossAxisAlignment:
+//                                                           CrossAxisAlignment
+//                                                               .center,
+//                                                       children: [
+//                                                         Expanded(
+//                                                           child: Row(
+//                                                             children: [
+//                                                               CircleAvatar(
+//                                                                 radius: 20,
+//                                                                 backgroundColor:
+//                                                                     Colors
+//                                                                         .grey[300],
+//                                                                 backgroundImage:
+//                                                                     comment["urlAvatar"] !=
+//                                                                             null
+//                                                                         ? NetworkImage(
+//                                                                           "https://pos7d.site/MAZO/sys/${comment["urlAvatar"]}",
+//                                                                         )
+//                                                                         : null,
+//                                                                 child:
+//                                                                     comment["urlAvatar"] ==
+//                                                                             null
+//                                                                         ? Icon(
+//                                                                           Icons
+//                                                                               .person,
+//                                                                           color:
+//                                                                               Colors.grey,
+//                                                                         )
+//                                                                         : null,
+//                                                               ),
+//                                                               SizedBox(
+//                                                                 width: 10,
+//                                                               ),
+//                                                               Expanded(
+//                                                                 child: Column(
+//                                                                   crossAxisAlignment:
+//                                                                       CrossAxisAlignment
+//                                                                           .start,
+//                                                                   children: [
+//                                                                     Text(
+//                                                                       comment["Fullname"] ??
+//                                                                           "مستخدم غير معروف",
+//                                                                       style: TextStyle(
+//                                                                         fontWeight:
+//                                                                             FontWeight.bold,
+//                                                                         fontSize:
+//                                                                             14,
+//                                                                       ),
+//                                                                     ),
+//                                                                     SizedBox(
+//                                                                       height: 4,
+//                                                                     ),
+//                                                                     Text(
+//                                                                       comment["comment"],
+//                                                                       style: TextStyle(
+//                                                                         fontSize:
+//                                                                             13,
+//                                                                       ),
+//                                                                     ),
+//                                                                   ],
+//                                                                 ),
+//                                                               ),
+//                                                             ],
+//                                                           ),
+//                                                         ),
+//                                                         Visibility(
+//                                                           visible:
+//                                                               uid == comment['uid']
+//                                                                   ? true
+//                                                                   : false,
+//                                                           child: IconButton(
+//                                                             onPressed: () async {
+//                                                               var result =
+//                                                                   await SimpleMoreComment.showItemComments(
+//                                                                     context,
+//                                                                     comment['id'],
+//                                                                   );
+//                                                               if (result !=
+//                                                                       null &&
+//                                                                   result['deleted'] ==
+//                                                                       true) {
+//                                                                 var comments = await AppUtils.makeRequests(
+//                                                                   "fetch",
+//                                                                   "SELECT Users.Fullname, Users.urlAvatar, Comments.`id`, Comments.`comment` "
+//                                                                       "FROM Users RIGHT JOIN Comments ON Users.uid COLLATE utf8_unicode_ci = Comments.user_id COLLATE utf8_unicode_ci "
+//                                                                       "WHERE item_id = '${Provider.of<AppProvider>(context, listen: false).itemId.toString()}'",
+//                                                                 );
+//                                                                 setState(() {
+//                                                                   commentsList =
+//                                                                       comments;
+//                                                                 });
+//                                                               } else {
+//                                                                 setState(() {
+//                                                                   editingCommentText =
+//                                                                       result['cComment'][0]['comment'];
+//                                                                   editingCommentId =
+//                                                                       result['cComment'][0]['id'];
+//                                                                   commentController
+//                                                                           .text =
+//                                                                       editingCommentText;
+//                                                                 });
+//                                                               }
+//                                                             },
+//                                                             icon: Icon(
+//                                                               Iconsax
+//                                                                   .more_square,
+//                                                             ),
+//                                                           ),
+//                                                         ),
+//                                                         Visibility(
+//                                                           visible:
+//                                                               comment['uid'] !=
+//                                                                       uid
+//                                                                   ? true
+//                                                                   : false,
+//                                                           child: GestureDetector(
+//                                                             onTap: () async {
+//                                                               var currentCommentReply =
+//                                                                   await AppUtils.makeRequests(
+//                                                                     "fetch",
+//                                                                     "SELECT Fullname FROM Users WHERE uid = '${comment['uid']}'",
+//                                                                   );
+//                                                               setState(() {
+//                                                                 comType =
+//                                                                     'replied';
+//                                                                 comex =
+//                                                                     currentCommentReply[0]['Fullname'];
+//                                                               });
+//                                                             },
+//                                                             child: Icon(
+//                                                               Iconsax.undo,
+//                                                             ),
+//                                                           ),
+//                                                         ),
+//                                                       ],
+//                                                     ),
+//                                                   ),
+//                                             ],
+//                                           );

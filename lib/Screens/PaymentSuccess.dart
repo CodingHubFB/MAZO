@@ -3,8 +3,10 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:mazo/BottomSheets/ChatSellersBottomSheet.dart';
 import 'package:mazo/Core/Utils.dart';
 import 'package:mazo/Routes/App_Router.dart';
+import 'package:mazo/Screens/ChatScreen.dart';
 import 'package:mazo/Widgets/Button_Widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -56,63 +58,99 @@ class _PaymentSuccessState extends State<PaymentSuccess> {
     super.initState();
   }
 
-  
-
   @override
   Widget build(BuildContext context) {
-    return languages.isEmpty ? Scaffold(backgroundColor: Colors.white,) : Scaffold(
-      backgroundColor: Colors.green.shade50,
-      appBar: AppBar(
-        title: Text("${languages[77][lang]}"),
-        backgroundColor: Colors.green,
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Iconsax.tick_circle, color: Colors.green, size: 100),
-            const SizedBox(height: 20),
-            Text("${languages[77][lang]}", style: TextStyle(fontSize: 24)),
-            const SizedBox(height: 10),
-            Text("${languages[78][lang]}"),
-            const SizedBox(height: 10),
-            Container(
-              margin: EdgeInsets.symmetric(horizontal: 10),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () {
-                        renewOID();
-                        context.go('/home');
-                      },
-                      child: ButtonWidget(btnText: "${languages[79][lang]}"),
-                    ),
+    return languages.isEmpty
+        ? Scaffold(backgroundColor: Colors.white)
+        : Scaffold(
+          backgroundColor: Colors.green.shade50,
+          appBar: AppBar(
+            title: Text("${languages[77][lang]}"),
+            backgroundColor: Colors.green,
+          ),
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Iconsax.tick_circle, color: Colors.green, size: 100),
+                const SizedBox(height: 20),
+                Text("${languages[77][lang]}", style: TextStyle(fontSize: 24)),
+                const SizedBox(height: 10),
+                Text("${languages[78][lang]}"),
+                const SizedBox(height: 10),
+                Container(
+                  margin: EdgeInsets.symmetric(horizontal: 10),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () {
+                                renewOID();
+                                context.go('/home');
+                              },
+                              child: ButtonWidget(
+                                btnText: "${languages[79][lang]}",
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 10),
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () async {
+                                SharedPreferences prefx =
+                                    await SharedPreferences.getInstance();
+                                AppUtils.sNavigateToReplace(
+                                  navigatorKey.currentState!.context,
+                                  '/invoice',
+                                  {
+                                    'orderId':
+                                        prefx.getString("OID").toString(),
+                                    'payment': 'Customer',
+                                  },
+                                );
+                              },
+                              child: ButtonWidget(
+                                btnText: "${languages[80][lang]}",
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 10),
+                      GestureDetector(
+                        onTap: () async {
+                          SharedPreferences prefx =
+                              await SharedPreferences.getInstance();
+
+                          final oid = prefx.getString("OID");
+
+                          final seller_id = await AppUtils.makeRequests(
+                            "fetch",
+                            "SELECT uid FROM Orders WHERE oid = '$oid'",
+                          );
+
+                          showModalBottomSheet(
+                            context: context,
+                            builder: (context) {
+                              return chatSellersBottomSheet(
+                                seller_ids: seller_id,
+                              );
+                            },
+                          );
+
+                          
+                        },
+
+                        child: ButtonWidget(btnText: "${languages[159][lang]}"),
+                      ),
+                    ],
                   ),
-                  SizedBox(width: 10),
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () async {
-                        SharedPreferences prefx =
-                            await SharedPreferences.getInstance();
-                        AppUtils.sNavigateToReplace(
-                          navigatorKey.currentState!.context,
-                          '/invoice',
-                          {
-                            'orderId': prefx.getString("OID").toString(),
-                            'payment': 'Customer',
-                          },
-                        );
-                      },
-                      child: ButtonWidget(btnText: "${languages[80][lang]}"),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
-    );
+          ),
+        );
   }
 }

@@ -19,43 +19,39 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.4.1</string>
+	<string>1.0.0</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>com.mazo.shorts</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>mazo</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<key>FirebaseAppDelegateProxyEnabled</key>
+	<false/>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>tel</string>
+		<string>mailto</string>
+		<string>sms</string>
+	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
-	<key>CFBundleURLTypes</key>
-<array>
-  <dict>
-    <key>CFBundleTypeRole</key>
-    <string>Editor</string>
-    <key>CFBundleURLName</key>
-    <string>com.mazo.shorts</string>
-    <key>CFBundleURLSchemes</key>
-    <array>
-      <string>mazo</string>
-    </array>
-  </dict>
-</array>
-
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
 		<true/>
 	</dict>
-	<key>LSApplicationQueriesSchemes</key>
-	<array>
-        <string>tel</string>
-        <string>mailto</string>
-		<string>sms</string>
-	</array>
-	<key>com.apple.developer.in-app-payments</key>
-	<array>
-	    <string>merchant.mazo.pay</string>
-	</array>
-
 	<key>NSCameraUsageDescription</key>
 	<string>نحتاج إذنك لاستخدام الكاميرا لالتقاط صورة أو فيديو.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
@@ -64,15 +60,13 @@
 	<string>نحتاج إذنك للوصول إلى الميكروفون لتسجيل الفيديوهات.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>نحتاج إذنك للوصول إلى الصور لتحديد صورة من ألبومك.</string>
-	<key>FirebaseAppDelegateProxyEnabled</key>
-	<false/>
-	<key>UIBackgroundModes</key>
-	<array>
-	    <string>fetch</string>
-        <string>remote-notification</string>
-	</array>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+		<string>remote-notification</string>
+	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
@@ -89,6 +83,10 @@
 		<string>UIInterfaceOrientationPortraitUpsideDown</string>
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>com.apple.developer.in-app-payments</key>
+	<array>
+		<string>merchant.mazo.pay</string>
 	</array>
 </dict>
 </plist>

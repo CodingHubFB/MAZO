@@ -72,7 +72,7 @@ class _UserProfileState extends State<UserProfile> {
   Future getMerchant() async {
     var merchantUser = await AppUtils.makeRequests(
       "fetch",
-      "SELECT Fullname, urlAvatar FROM Users WHERE uid = '${widget.userId}' ",
+      "SELECT Fullname, urlAvatar, uid FROM Users WHERE uid = '${widget.userId}' ",
     );
     setState(() {
       merchantUsers = merchantUser;
@@ -188,6 +188,8 @@ class _UserProfileState extends State<UserProfile> {
   @override
   Widget build(BuildContext context) {
     getLangDB();
+    print(uid);
+    print(merchantUsers[0]['uid']);
     return Directionality(
       textDirection: lang == 'arb' ? TextDirection.rtl : TextDirection.ltr,
       child:
@@ -215,27 +217,32 @@ class _UserProfileState extends State<UserProfile> {
                   centerTitle: true,
                   elevation: 0,
                   actions: [
-                    GestureDetector(
-                      onTap: () async {
-                        SharedPreferences prefx =
-                            await SharedPreferences.getInstance();
-                        if (prefx.getString("Lang") == 'arb') {
-                          prefx.setString("Lang", "eng");
-                        } else {
-                          prefx.setString("Lang", "arb");
-                        }
-                        getLang();
-                        Provider.of<AppProvider>(
-                          context,
-                          listen: false,
-                        ).setLang(lang);
-                        setState(() {});
-                      },
-                      child: Container(
-                        margin: EdgeInsets.symmetric(horizontal: 10),
-                        child: Image.asset("assets/img/$lang.png", width: 30),
-                      ),
-                    ),
+                    merchantUsers[0]['uid'] != uid
+                        ? Container()
+                        : GestureDetector(
+                          onTap: () async {
+                            SharedPreferences prefx =
+                                await SharedPreferences.getInstance();
+                            if (prefx.getString("Lang") == 'arb') {
+                              prefx.setString("Lang", "eng");
+                            } else {
+                              prefx.setString("Lang", "arb");
+                            }
+                            getLang();
+                            Provider.of<AppProvider>(
+                              context,
+                              listen: false,
+                            ).setLang(lang);
+                            setState(() {});
+                          },
+                          child: Container(
+                            margin: EdgeInsets.symmetric(horizontal: 10),
+                            child: Image.asset(
+                              "assets/img/$lang.png",
+                              width: 30,
+                            ),
+                          ),
+                        ),
                   ],
                 ),
                 body: SafeArea(

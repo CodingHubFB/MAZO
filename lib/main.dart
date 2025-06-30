@@ -97,14 +97,9 @@ class _MyAppState extends State<MyApp> {
     SharedPreferences prefx = await SharedPreferences.getInstance();
     print("UIIIIIID ----> ${prefx.getString("UID")}");
     print("OIIIIIID ----> ${prefx.getString("OID")}");
-    // طلب الإذن بالإشعارات
     NotificationSettings settings =
         await FirebaseMessaging.instance.requestPermission();
-
     if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-      print('✅ المستخدم وافق على الإشعارات');
-
-      // الحصول على FCM Token
       fcmToken = await FirebaseMessaging.instance.getToken();
       print("🔥 FCM Token: $fcmToken");
       await AppUtils.makeRequests(
@@ -125,6 +120,7 @@ class _MyAppState extends State<MyApp> {
             message.notification?.body,
           );
           final data = message.data;
+
           // if (data['action'] == 'open_invoice') {
           //   print(data['orderId']);
           //   AppUtils.sNavigateToReplace(
@@ -143,35 +139,48 @@ class _MyAppState extends State<MyApp> {
             message.notification?.body,
           );
           final data = message.data;
-        // if (data['action'] == 'open_invoice') {
-        //   print(data['orderId']);
-        //   AppUtils.sNavigateToReplace(
-        //     navigatorKey.currentState!.context,
-        //     '/invoice',
-        //     {'orderId': data['orderId'], 'shipId': data['shipId']},
-        //   );
-        // }
+          if (data['action'] == 'open_chat') {
+            AppUtils.sNavigateToReplace(
+              navigatorKey.currentState!.context,
+              '/chatSeller',
+              {'chatId': data['chatId']},
+            );
+          }
+          // if (data['action'] == 'open_invoice') {
+          //   print(data['orderId']);
+          //   AppUtils.sNavigateToReplace(
+          //     navigatorKey.currentState!.context,
+          //     '/invoice',
+          //     {'orderId': data['orderId'], 'shipId': data['shipId']},
+          //   );
+          // }
         }
-
-        
       });
       RemoteMessage? initialMessage =
           await FirebaseMessaging.instance.getInitialMessage();
       if (initialMessage != null) {
-        if (initialMessage.notification?.title != '' && initialMessage.notification?.body != '') {
+        if (initialMessage.notification?.title != '' &&
+            initialMessage.notification?.body != '') {
           showNotification(
-          initialMessage.notification?.title,
-          initialMessage.notification?.body,
-        );
-        final data = initialMessage.data;
-        // if (data['action'] == 'open_invoice') {
-        //   print(data['orderId']);
-        //   AppUtils.sNavigateToReplace(
-        //     navigatorKey.currentState!.context,
-        //     '/invoice',
-        //     {'orderId': data['orderId'], 'shipId': data['shipId']},
-        //   );
-        // }
+            initialMessage.notification?.title,
+            initialMessage.notification?.body,
+          );
+          final data = initialMessage.data;
+          if (data['action'] == 'open_chat') {
+            AppUtils.sNavigateToReplace(
+              navigatorKey.currentState!.context,
+              '/chatSeller',
+              {'chatId': data['chatId']},
+            );
+          }
+          // if (data['action'] == 'open_invoice') {
+          //   print(data['orderId']);
+          //   AppUtils.sNavigateToReplace(
+          //     navigatorKey.currentState!.context,
+          //     '/invoice',
+          //     {'orderId': data['orderId'], 'shipId': data['shipId']},
+          //   );
+          // }
         }
       }
     } else {

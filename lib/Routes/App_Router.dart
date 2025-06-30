@@ -5,6 +5,7 @@ import 'package:mazo/Screens/Auth/LoginScreen.dart';
 import 'package:mazo/Screens/Auth/OTPScreen.dart';
 import 'package:mazo/Screens/CartScreen.dart';
 import 'package:mazo/Screens/ChangeLanguage.dart';
+import 'package:mazo/Screens/ChatScreen.dart';
 import 'package:mazo/Screens/Checkout.dart';
 import 'package:mazo/Screens/Checkout_Summary.dart';
 import 'package:mazo/Screens/CustomerOrders.dart';
@@ -68,13 +69,13 @@ final GoRouter router = GoRouter(
       },
     ),
 
-    GoRoute(
-      path: '/payGoogleForm',
-      builder: (context, state) {
-        final totalAmount = (state.extra as Map?)?['totalAmount'] ?? '';
-        return PayGoogleForms(totalAmount: totalAmount);
-      },
-    ),
+    // GoRoute(
+    //   path: '/payGoogleForm',
+    //   builder: (context, state) {
+    //     final totalAmount = (state.extra as Map?)?['totalAmount'] ?? '';
+    //     return PayGoogleForms(totalAmount: totalAmount);
+    //   },
+    // ),
 
     GoRoute(
       path: '/invoice',
@@ -136,6 +137,18 @@ final GoRouter router = GoRouter(
         );
       },
     ),
+
+    GoRoute(
+      path: '/chatSeller',
+      builder: (context, state) {
+        final params = state.extra as Map<String, String>;
+        return ChatScreen(
+          chatId: params['chatId']!,
+        );
+      },
+    ),
+
+    
     GoRoute(
       path: '/EditDetailsItem',
       builder: (context, state) {
@@ -152,7 +165,7 @@ final GoRouter router = GoRouter(
       builder: (context, state) => const PaymentSuccess(),
     ),
 
-    GoRoute(path: '/checkout', builder: (context, state) => CheckoutScreen()),
+    // GoRoute(path: '/checkout', builder: (context, state) => CheckoutScreen()),
     GoRoute(
       path: '/shippingOrders',
       builder: (context, state) => ShippingOrders(),

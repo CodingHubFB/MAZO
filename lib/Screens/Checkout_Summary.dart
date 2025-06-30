@@ -103,7 +103,6 @@ class _OrderSummaryState extends State<OrderSummary> {
                           .toString()
                           .split(',');
 
-                      // ابحث عن أول صورة (مش فيديو)
                       String? firstImage;
                       for (var media in mediaList) {
                         media = media.trim();

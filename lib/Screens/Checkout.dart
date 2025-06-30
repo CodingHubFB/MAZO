@@ -1,236 +1,214 @@
-import 'package:mazo/Core/Utils.dart';
-import 'package:mazo/Routes/App_Router.dart';
-import 'package:mazo/Widgets/Button_Widget.dart';
-import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import 'package:iconsax/iconsax.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+// import 'package:mazo/Core/Utils.dart';
+// import 'package:mazo/Routes/App_Router.dart';
+// import 'package:mazo/Widgets/Button_Widget.dart';
+// import 'package:flutter/material.dart';
+// import 'package:go_router/go_router.dart';
+// import 'package:iconsax/iconsax.dart';
+// import 'package:shared_preferences/shared_preferences.dart';
 
-class CheckoutScreen extends StatefulWidget {
-  const CheckoutScreen({super.key});
+// class CheckoutScreen extends StatefulWidget {
+//   const CheckoutScreen({super.key});
 
-  @override
-  State<CheckoutScreen> createState() => _CheckoutScreenState();
-}
+//   @override
+//   State<CheckoutScreen> createState() => _CheckoutScreenState();
+// }
 
-class _CheckoutScreenState extends State<CheckoutScreen> {
-  int isSelected = 0;
+// class _CheckoutScreenState extends State<CheckoutScreen> {
+//   int isSelected = 0;
 
-  double shippingFee = 10.0;
-  List cartOrders = [];
-  double totalPrices = 0.0;
-  double finalTotalFinish = 0.0;
+  
 
-  Future getCartOrders() async {
-    SharedPreferences prefx = await SharedPreferences.getInstance();
-    var orders = await AppUtils.makeRequests(
-      "fetch",
-      "SELECT Cart.id AS id, Items.`name`, Items.id AS itmid,Items.price, Items.media,Items.uid, Cart.qtt FROM Cart LEFT JOIN Items ON Cart.item_id = Items.id WHERE Cart.order_id = '${prefx.getString("OID")}'",
-    );
+//   String lang = "eng";
+//   List languages = [];
 
-    setState(() {
-      cartOrders = orders;
-      totalPrices = 0.0; // لازم تصفره قبل التكرار
-      for (var cartOrder in cartOrders) {
-        totalPrices +=
-            double.parse(cartOrder['price'].toString()) *
-            double.parse(cartOrder['qtt'].toString());
-      }
-      finalTotalFinish = totalPrices + shippingFee;
-    });
-  }
+//   Future getLang() async {
+//     SharedPreferences prefx = await SharedPreferences.getInstance();
 
-  String lang = "eng";
-  List languages = [];
+//     setState(() {
+//       lang = prefx.getString("Lang")!;
+//       getLangDB();
+//     });
+//   }
 
-  Future getLang() async {
-    SharedPreferences prefx = await SharedPreferences.getInstance();
+//   Future getLangDB() async {
+//     var results = await AppUtils.makeRequests(
+//       "fetch",
+//       "SELECT $lang FROM Languages ",
+//     );
+//     setState(() {
+//       languages = results;
+//     });
+//   }
 
-    setState(() {
-      lang = prefx.getString("Lang")!;
-      getLangDB();
-    });
-  }
+//   @override
+//   void initState() {
+//     getLang();
+//     getCartOrders();
+//     super.initState();
+//   }
 
-  Future getLangDB() async {
-    var results = await AppUtils.makeRequests(
-      "fetch",
-      "SELECT $lang FROM Languages ",
-    );
-    setState(() {
-      languages = results;
-    });
-  }
-
-  @override
-  void initState() {
-    getLang();
-    getCartOrders();
-    super.initState();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return languages.isEmpty
-        ? Scaffold(backgroundColor: Colors.white)
-        : Scaffold(
-          backgroundColor: Colors.white,
-          appBar: AppBar(
-            leading: IconButton(
-              onPressed: () {
-                context.go('/shippingOrders');
-              },
-              icon: Icon(Iconsax.arrow_circle_left),
-            ),
-            forceMaterialTransparency: true,
-            centerTitle: true,
-            title: Text(
-              languages[69][lang],
-              style: TextStyle(color: Colors.black),
-            ),
-            backgroundColor: Colors.white,
-          ),
-          body: Container(
-            margin: EdgeInsets.all(20),
-            child: Column(
-              children: [
-                // ListTile(
-                //   onTap: () {
-                //     setState(() {
-                //       isSelected = 1;
-                //     });
-                //   },
-                //   tileColor: Colors.grey.shade200,
-                //   leading: Icon(Iconsax.wallet_1),
-                //   shape: RoundedRectangleBorder(
-                //     borderRadius: BorderRadius.circular(10),
-                //     side:
-                //         isSelected == 1
-                //             ? BorderSide(color: Colors.black, width: 2)
-                //             : BorderSide.none,
-                //   ),
-                //   title: Text(languages[70][lang]),
-                // ),
-                // SizedBox(height: 10),
-                ListTile(
-                  // onTap: () {
-                  //   setState(() {
-                  //     isSelected = 2;
-                  //   });
-                  // },
-                  tileColor: Colors.grey.shade200,
-                  leading: Icon(Iconsax.wallet_1),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    side: BorderSide(color: Colors.black, width: 2),
-                  ),
-                  title: Text(
-                    lang == 'arb' ? "الدفع عن طريق أي باي" : "Pay Using IPay",
-                  ),
-                ),
-              ],
-            ),
-          ),
-          floatingActionButtonLocation:
-              FloatingActionButtonLocation.centerDocked,
-          floatingActionButton: GestureDetector(
-            onTap: () async {
-              context.go('/payGoogleForm');
-              AppUtils.sNavigateToReplace(
-                navigatorKey.currentState!.context,
-                '/payGoogleForm',
-                {'totalAmount': finalTotalFinish.toString()},
-              );
+//   @override
+//   Widget build(BuildContext context) {
+//     return languages.isEmpty
+//         ? Scaffold(backgroundColor: Colors.white)
+//         : Scaffold(
+//           backgroundColor: Colors.white,
+//           appBar: AppBar(
+//             leading: IconButton(
+//               onPressed: () {
+//                 context.go('/shippingOrders');
+//               },
+//               icon: Icon(Iconsax.arrow_circle_left),
+//             ),
+//             forceMaterialTransparency: true,
+//             centerTitle: true,
+//             title: Text(
+//               languages[69][lang],
+//               style: TextStyle(color: Colors.black),
+//             ),
+//             backgroundColor: Colors.white,
+//           ),
+//           body: Container(
+//             margin: EdgeInsets.all(20),
+//             child: Column(
+//               children: [
+//                 // ListTile(
+//                 //   onTap: () {
+//                 //     setState(() {
+//                 //       isSelected = 1;
+//                 //     });
+//                 //   },
+//                 //   tileColor: Colors.grey.shade200,
+//                 //   leading: Icon(Iconsax.wallet_1),
+//                 //   shape: RoundedRectangleBorder(
+//                 //     borderRadius: BorderRadius.circular(10),
+//                 //     side:
+//                 //         isSelected == 1
+//                 //             ? BorderSide(color: Colors.black, width: 2)
+//                 //             : BorderSide.none,
+//                 //   ),
+//                 //   title: Text(languages[70][lang]),
+//                 // ),
+//                 // SizedBox(height: 10),
+//                 ListTile(
+//                   // onTap: () {
+//                   //   setState(() {
+//                   //     isSelected = 2;
+//                   //   });
+//                   // },
+//                   tileColor: Colors.grey.shade200,
+//                   leading: Icon(Iconsax.wallet_1),
+//                   shape: RoundedRectangleBorder(
+//                     borderRadius: BorderRadius.circular(10),
+//                     side: BorderSide(color: Colors.black, width: 2),
+//                   ),
+//                   title: Text(
+//                     lang == 'arb' ? "الدفع عن طريق أي باي" : "Pay Using IPay",
+//                   ),
+//                 ),
+//               ],
+//             ),
+//           ),
+//           floatingActionButtonLocation:
+//               FloatingActionButtonLocation.centerDocked,
+//           floatingActionButton: GestureDetector(
+//             onTap: () async {
+//               context.go('/payGoogleForm');
+              // AppUtils.sNavigateToReplace(
+              //   navigatorKey.currentState!.context,
+              //   '/payGoogleForm',
+              //   {'totalAmount': finalTotalFinish.toString()},
+              // );
 
               
-              // SharedPreferences prefx = await SharedPreferences.getInstance();
+//               // SharedPreferences prefx = await SharedPreferences.getInstance();
 
-              // if (isSelected == 1) {
-              //   // طريقة الدفع: عند الاستلام
-              //   showDialog(
-              //     context: context,
-              //     barrierDismissible: false,
-              //     builder: (BuildContext context) {
-              //       return AlertDialog(
-              //         shape: RoundedRectangleBorder(
-              //           borderRadius: BorderRadius.circular(15),
-              //         ),
-              //         content: Row(
-              //           children: [
-              //             Container(
-              //               height: 20,
-              //               child: SpinKitDoubleBounce(
-              //                 color: AppTheme.primaryColor,
-              //                 size: 30.0,
-              //               ),
-              //             ),
-              //             SizedBox(width: 20),
-              //             Expanded(
-              //               child: Text(
-              //                 "جارٍ تأكيد الدفع ومعالجة الطلب...",
-              //                 style: TextStyle(fontSize: 16),
-              //               ),
-              //             ),
-              //           ],
-              //         ),
-              //       );
-              //     },
-              //   );
+//               // if (isSelected == 1) {
+//               //   // طريقة الدفع: عند الاستلام
+//               //   showDialog(
+//               //     context: context,
+//               //     barrierDismissible: false,
+//               //     builder: (BuildContext context) {
+//               //       return AlertDialog(
+//               //         shape: RoundedRectangleBorder(
+//               //           borderRadius: BorderRadius.circular(15),
+//               //         ),
+//               //         content: Row(
+//               //           children: [
+//               //             Container(
+//               //               height: 20,
+//               //               child: SpinKitDoubleBounce(
+//               //                 color: AppTheme.primaryColor,
+//               //                 size: 30.0,
+//               //               ),
+//               //             ),
+//               //             SizedBox(width: 20),
+//               //             Expanded(
+//               //               child: Text(
+//               //                 "جارٍ تأكيد الدفع ومعالجة الطلب...",
+//               //                 style: TextStyle(fontSize: 16),
+//               //               ),
+//               //             ),
+//               //           ],
+//               //         ),
+//               //       );
+//               //     },
+//               //   );
 
                 
-              // } else {
-              //   // طريقة الدفع: كارت
-              //   // String result = await PaymentManager.makePayment(
-              //   //   (finalTotalFinish * 100).toInt(),
-              //   //   "qar",
-              //   // );
+//               // } else {
+//               //   // طريقة الدفع: كارت
+//               //   // String result = await PaymentManager.makePayment(
+//               //   //   (finalTotalFinish * 100).toInt(),
+//               //   //   "qar",
+//               //   // );
 
-              //   //
+//               //   //
 
-              //   if (result == 'Succeeded') {
-              //     print("حالة الدفع: $result");
+//               //   if (result == 'Succeeded') {
+//               //     print("حالة الدفع: $result");
 
-              //     showDialog(
-              //       context: context,
-              //       barrierDismissible: false,
-              //       builder: (BuildContext context) {
-              //         return AlertDialog(
-              //           shape: RoundedRectangleBorder(
-              //             borderRadius: BorderRadius.circular(15),
-              //           ),
-              //           content: Row(
-              //             children: [
-              //               SpinKitDoubleBounce(
-              //                 color: AppTheme.primaryColor,
-              //                 size: 30.0,
-              //               ),
-              //               SizedBox(width: 20),
-              //               Expanded(
-              //                 child: Text(
-              //                   languages[74][lang],
-              //                   style: TextStyle(fontSize: 16),
-              //                 ),
-              //               ),
-              //             ],
-              //           ),
-              //         );
-              //       },
-              //     );
+//               //     showDialog(
+//               //       context: context,
+//               //       barrierDismissible: false,
+//               //       builder: (BuildContext context) {
+//               //         return AlertDialog(
+//               //           shape: RoundedRectangleBorder(
+//               //             borderRadius: BorderRadius.circular(15),
+//               //           ),
+//               //           content: Row(
+//               //             children: [
+//               //               SpinKitDoubleBounce(
+//               //                 color: AppTheme.primaryColor,
+//               //                 size: 30.0,
+//               //               ),
+//               //               SizedBox(width: 20),
+//               //               Expanded(
+//               //                 child: Text(
+//               //                   languages[74][lang],
+//               //                   style: TextStyle(fontSize: 16),
+//               //                 ),
+//               //               ),
+//               //             ],
+//               //           ),
+//               //         );
+//               //       },
+//               //     );
 
-              //     // هات البائعين الفريدين
+//               //     // هات البائعين الفريدين
 
-              //     context.go('/paymentSuccess');
-              //   } else {
-              //     print("حالة الدفع: $result");
-              //   }
-              // }
-            },
+//               //     context.go('/paymentSuccess');
+//               //   } else {
+//               //     print("حالة الدفع: $result");
+//               //   }
+//               // }
+//             },
 
-            child: SizedBox(
-              height: 60,
-              child: ButtonWidget(btnText: languages[72][lang]),
-            ),
-          ),
-        );
-  }
-}
+//             child: SizedBox(
+//               height: 60,
+//               child: ButtonWidget(btnText: languages[72][lang]),
+//             ),
+//           ),
+//         );
+//   }
+// }

@@ -573,28 +573,28 @@ class _AddItemsState extends State<AddItems> {
                                 ],
                               ),
 
-                              SizedBox(height: 20),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: InputWidget(
-                                      icontroller: sellerController,
-                                      iHint: languages[123][lang],
-                                      ikeyboardType: TextInputType.number,
-                                      isRead: true,
-                                    ),
-                                  ),
-                                  SizedBox(width: 20),
-                                  Expanded(
-                                    child: InputWidget(
-                                      icontroller: mazoController,
-                                      iHint: languages[124][lang],
-                                      ikeyboardType: TextInputType.number,
-                                      isRead: true,
-                                    ),
-                                  ),
-                                ],
-                              ),
+                              // SizedBox(height: 20),
+                              // Row(
+                              //   children: [
+                              //     Expanded(
+                              //       child: InputWidget(
+                              //         icontroller: sellerController,
+                              //         iHint: languages[123][lang],
+                              //         ikeyboardType: TextInputType.number,
+                              //         isRead: true,
+                              //       ),
+                              //     ),
+                              //     SizedBox(width: 20),
+                              //     Expanded(
+                              //       child: InputWidget(
+                              //         icontroller: mazoController,
+                              //         iHint: languages[124][lang],
+                              //         ikeyboardType: TextInputType.number,
+                              //         isRead: true,
+                              //       ),
+                              //     ),
+                              //   ],
+                              // ),
                               SizedBox(height: 20),
                               InputWidget(
                                 icontroller: descController,

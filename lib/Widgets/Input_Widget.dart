@@ -18,6 +18,7 @@ class InputWidget extends StatefulWidget {
   final FocusNode? focusNode;
   final TextAlign? iAlign;
   final BorderSide? border;
+  final EdgeInsetsGeometry? iPad;
   const InputWidget({
     super.key,
     this.icontroller,
@@ -36,6 +37,7 @@ class InputWidget extends StatefulWidget {
     this.focusNode,
     this.iAlign,
     this.border,
+    this.iPad,
   });
 
   @override
@@ -60,6 +62,7 @@ class _InputWidgetState extends State<InputWidget> {
       controller: widget.icontroller,
       textAlign: widget.iAlign ?? TextAlign.start,
       decoration: InputDecoration(
+        contentPadding: widget.iPad,
         border: OutlineInputBorder(
           borderSide: widget.border ?? BorderSide.none,
         ),
