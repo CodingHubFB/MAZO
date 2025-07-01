@@ -35,7 +35,7 @@ class _SplashScreenState extends State<SplashScreen> {
       }
 
       final response = await dio.get(
-        'https://pos7d.site/MAZO/get_update_info.php?platform=$platform&k=${DateTime.now().millisecondsSinceEpoch}',
+        'https://pos7d.site/Globee/get_update_info.php?platform=$platform&k=${DateTime.now().millisecondsSinceEpoch}',
       );
 
       if (response.statusCode == 200) {

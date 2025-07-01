@@ -57,7 +57,7 @@ class _InvoiceWebViewState extends State<InvoiceWebView> {
           WebViewController()
             ..loadRequest(
               Uri.parse(
-                "https://pos7d.site/MAZO/Mazo_Invoice.php?uid=${widget.payment == 'Customer' ? '' : prefx.getString("UID")}&oid=${widget.orderId}&shipId=${widget.shipId != "" ? widget.shipId : Provider.of<AppProvider>(context, listen: false).shipId}&custId=${widget.custId}&lang=$lang&k=${DateTime.now().millisecondsSinceEpoch}",
+                "https://pos7d.site/Globee/Mazo_Invoice.php?uid=${widget.payment == 'Customer' ? '' : prefx.getString("UID")}&oid=${widget.orderId}&shipId=${widget.shipId != "" ? widget.shipId : Provider.of<AppProvider>(context, listen: false).shipId}&custId=${widget.custId}&lang=$lang&k=${DateTime.now().millisecondsSinceEpoch}",
               ),
             )
             ..setJavaScriptMode(JavaScriptMode.unrestricted);

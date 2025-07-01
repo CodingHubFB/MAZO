@@ -204,7 +204,7 @@ class _CartScreenState extends State<CartScreen> {
                               print(media);
                               thumbnailFutures[cartOrders[i]['itmid']] ??=
                                   generateSmartThumbnail(
-                                    "https://pos7d.site/MAZO/sys/uploads/Items/${cartOrders[i]['itmid']}/$firstImage",
+                                    "https://pos7d.site/Globee/sys/uploads/Items/${cartOrders[i]['itmid']}/$firstImage",
                                     cartOrders[i]['itmid'],
                                   );
                             }
@@ -230,7 +230,7 @@ class _CartScreenState extends State<CartScreen> {
                               backgroundImage:
                                   firstImage?.split('.')[1] != 'mp4'
                                       ? NetworkImage(
-                                        "https://pos7d.site/MAZO/sys/uploads/Items/${cartOrders[i]['itmid']}/$firstImage",
+                                        "https://pos7d.site/Globee/sys/uploads/Items/${cartOrders[i]['itmid']}/$firstImage",
                                       )
                                       : null,
                               backgroundColor: Colors.grey[300],

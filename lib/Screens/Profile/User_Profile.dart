@@ -257,7 +257,7 @@ class _UserProfileState extends State<UserProfile> {
                               radius: 50,
                               backgroundImage: NetworkImage(
                                 merchantUsers.isNotEmpty
-                                    ? "https://pos7d.site/MAZO/sys/${merchantUsers[0]['urlAvatar']}"
+                                    ? "https://pos7d.site/Globee/sys/${merchantUsers[0]['urlAvatar']}"
                                     : "",
                               ),
                             ),
@@ -478,7 +478,7 @@ class _UserProfileState extends State<UserProfile> {
 
                                       // رابط الميديا
                                       String mediaUrl =
-                                          "https://pos7d.site/MAZO/sys/uploads/Items/${merchantItems[index]['id']}/$firstMedia";
+                                          "https://pos7d.site/Globee/sys/uploads/Items/${merchantItems[index]['id']}/$firstMedia";
                                       thumbnailFutures[merchantItems[index]['id']] ??=
                                           generateSmartThumbnail(
                                             mediaUrl,

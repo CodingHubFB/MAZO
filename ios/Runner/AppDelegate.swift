@@ -59,10 +59,10 @@ import UserNotifications
   }
 
   private func handleDeepLink(url: URL) {
-  if url.scheme == "mazo", url.host == "product" {
+  if url.scheme == "globee", url.host == "product" {
     if let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
        let productId = components.queryItems?.first(where: { $0.name == "id" })?.value {
-      let fullPath = "/MAZO/product?id=\(productId)"
+      let fullPath = "/Globee/product?id=\(productId)"
       methodChannel?.invokeMethod("openProduct", arguments: fullPath)
     }
   }

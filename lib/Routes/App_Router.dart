@@ -105,7 +105,7 @@ final GoRouter router = GoRouter(
     ),
 
     GoRoute(
-      path: '/MAZO/product',
+      path: '/Globee/product',
       builder: (context, state) {
         final id = state.uri.queryParameters['id'];
         print('وصل للـ Route بتاع المنتج، ID = $id');

@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mazo/Core/ApiKeys.dart';
@@ -28,6 +29,7 @@ Future<void> main() async {
     DeviceOrientation.portraitDown,
     DeviceOrientation.portraitUp,
   ]);
+  await dotenv.load(fileName: ".env");
 
   // iOS settings
   const DarwinInitializationSettings initializationSettingsDarwin =
@@ -233,7 +235,7 @@ class _MyAppState extends State<MyApp> {
       create: (_) => AppProvider(),
       child: MaterialApp.router(
         debugShowCheckedModeBanner: false,
-        title: 'MAZO',
+        title: 'Globee',
         locale: provider.locale,
         supportedLocales: const [Locale('en'), Locale('ar')],
         localizationsDelegates: const [

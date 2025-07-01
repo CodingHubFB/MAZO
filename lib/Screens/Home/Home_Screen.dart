@@ -358,7 +358,7 @@ class _HomeScreenState extends State<HomeScreen> {
       if (firstMedia.endsWith('.mp4')) {
         // ✅ أول media هو فيديو، نهيّئ ونشغّل
         initializeVideoController(
-          "https://pos7d.site/MAZO/sys/uploads/Items/${firstItem['id']}/$firstMedia",
+          "https://pos7d.site/Globee/sys/uploads/Items/${firstItem['id']}/$firstMedia",
           0,
           0,
         );
@@ -401,7 +401,7 @@ class _HomeScreenState extends State<HomeScreen> {
     platform.setMethodCallHandler((call) async {
       if (call.method == "openProduct") {
         final productId = call.arguments.toString();
-        final path = '/MAZO/product?id=$productId';
+        final path = '/Globee/product?id=$productId';
 
         print("🚀 فتح المنتج ID: $productId → المسار: $path");
 
@@ -676,7 +676,7 @@ class _HomeScreenState extends State<HomeScreen> {
             // شغل الفيديو الأول لو كان فيديو
             if (firstMedia.endsWith('.mp4')) {
               initializeVideoController(
-                "https://pos7d.site/MAZO/sys/uploads/Items/${item['id']}/$firstMedia",
+                "https://pos7d.site/Globee/sys/uploads/Items/${item['id']}/$firstMedia",
                 index,
                 0,
               );
@@ -754,7 +754,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                       if (currentMedia.endsWith('.mp4')) {
                         initializeVideoController(
-                          "https://pos7d.site/MAZO/sys/uploads/Items/${items[index]['id']}/$currentMedia",
+                          "https://pos7d.site/Globee/sys/uploads/Items/${items[index]['id']}/$currentMedia",
                           index,
                           mediaIndex,
                         );
@@ -854,7 +854,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         );
                       } else {
                         return Image.network(
-                          "https://pos7d.site/MAZO/sys/uploads/Items/${items[index]['id']}/$mediaUrl",
+                          "https://pos7d.site/Globee/sys/uploads/Items/${items[index]['id']}/$mediaUrl",
                           fit: BoxFit.cover,
                           width: double.infinity,
                           height: double.infinity,
@@ -925,7 +925,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   children: [
                                     CircleAvatar(
                                       backgroundImage: NetworkImage(
-                                        "https://pos7d.site/MAZO/sys/${currentUsers[0]['urlAvatar']}",
+                                        "https://pos7d.site/Globee/sys/${currentUsers[0]['urlAvatar']}",
                                       ),
                                     ),
                                     SizedBox(width: 10),
@@ -1228,7 +1228,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         .share(
                                           ShareParams(
                                             text:
-                                                'شوف المنتج ده على MAZO 👇\nhttps://pos7d.site/MAZO/product?id=${items[index]['id']}',
+                                                'شوف المنتج ده على Globee 👇\nhttps://pos7d.site/Globee/product?id=${items[index]['id']}',
                                             sharePositionOrigin:
                                                 box.localToGlobal(Offset.zero) &
                                                 box.size,
@@ -1272,7 +1272,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         .share(
                                           ShareParams(
                                             text:
-                                                'شوف المنتج ده على MAZO 👇\nhttps://pos7d.site/MAZO/product?id=${items[index]['id']}',
+                                                'شوف المنتج ده على Globee 👇\nhttps://pos7d.site/Globee/product?id=${items[index]['id']}',
                                           ),
                                         )
                                         .then((_) async {

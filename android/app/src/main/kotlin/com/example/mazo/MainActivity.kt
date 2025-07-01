@@ -1,4 +1,4 @@
-package com.mazo.shorts
+package com.mazo.market
 
 import android.content.Intent
 import android.net.Uri

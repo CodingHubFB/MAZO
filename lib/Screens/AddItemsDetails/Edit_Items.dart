@@ -58,7 +58,7 @@ class _EditItemsState extends State<EditItems> {
             filenames
                 .map(
                   (file) =>
-                      "https://pos7d.site/MAZO/sys/uploads/Items/${widget.itemId}/$file",
+                      "https://pos7d.site/Globee/sys/uploads/Items/${widget.itemId}/$file",
                 )
                 .toList();
       }

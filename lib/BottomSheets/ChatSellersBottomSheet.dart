@@ -61,7 +61,7 @@ class chatSellersBottomSheetState extends State<chatSellersBottomSheet> {
                 contentPadding: EdgeInsets.symmetric(horizontal: 0),
                 leading: CircleAvatar(
                   backgroundImage: NetworkImage(
-                    "https://www.pos7d.site/MAZO/sys/${sellers[i]['urlAvatar']}",
+                    "https://www.pos7d.site/Globee/sys/${sellers[i]['urlAvatar']}",
                   ),
                 ),
                 title: Text(sellers[i]['Fullname']),

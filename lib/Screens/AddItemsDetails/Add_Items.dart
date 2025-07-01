@@ -153,7 +153,7 @@ class _AddItemsState extends State<AddItems> {
       });
 
       await Dio().post(
-        'https://pos7d.site/MAZO/Upload.php',
+        'https://pos7d.site/Globee/Upload.php',
         data: formData,
         onSendProgress: (int sent, int total) {
           setState(() {

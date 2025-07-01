@@ -126,7 +126,7 @@ class _OrderSummaryState extends State<OrderSummary> {
                                 borderRadius: BorderRadius.circular(8),
                                 image: DecorationImage(
                                   image: NetworkImage(
-                                    "https://pos7d.site/MAZO/sys/uploads/Items/${cartOrders[i]['itmid']}/$firstImage",
+                                    "https://pos7d.site/Globee/sys/uploads/Items/${cartOrders[i]['itmid']}/$firstImage",
                                   ),
                                   fit: BoxFit.cover,
                                 ),

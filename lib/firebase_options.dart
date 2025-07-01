@@ -50,20 +50,20 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyAWjCoRvUx108hE3jvYvzu13_pVrTgY-H8',
-    appId: '1:326760304171:android:ddff8988c613b35b7e646e',
-    messagingSenderId: '326760304171',
-    projectId: 'mazo-4ea7b',
-    storageBucket: 'mazo-4ea7b.firebasestorage.app',
+    apiKey: 'AIzaSyDGD8iynTbt2dkdPwvETgqGu38fRDBp8mE',
+    appId: '1:570142296668:android:469414ffaa8be810f17499',
+    messagingSenderId: '570142296668',
+    projectId: 'mazo-trading',
+    storageBucket: 'mazo-trading.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyC59EdfD2jho7gXGYfV6KeNvrJw_3JOBI8',
-    appId: '1:326760304171:ios:15dc4223e027e4847e646e',
-    messagingSenderId: '326760304171',
-    projectId: 'mazo-4ea7b',
-    storageBucket: 'mazo-4ea7b.firebasestorage.app',
-    iosBundleId: 'com.mazo.shorts',
+    apiKey: 'AIzaSyDNHgfYAG8C319vVOlZXS_eJtActuFLfy0',
+    appId: '1:570142296668:ios:04b0a8039002c686f17499',
+    messagingSenderId: '570142296668',
+    projectId: 'mazo-trading',
+    storageBucket: 'mazo-trading.firebasestorage.app',
+    iosBundleId: 'com.mazo.market',
   );
 
 }

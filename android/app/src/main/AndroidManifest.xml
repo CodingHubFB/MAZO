@@ -5,7 +5,7 @@
 <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <application
-        android:label="MAZO"
+        android:label="Globee"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
@@ -23,7 +23,7 @@
     <category android:name="android.intent.category.BROWSABLE" />
     <data android:scheme="https"
           android:host="pos7d.site"
-          android:pathPrefix="/MAZO/product" />
+          android:pathPrefix="/Globee/product" />
 </intent-filter>
 
 

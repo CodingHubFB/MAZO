@@ -157,7 +157,7 @@ class _ChatScreenState extends State<ChatScreen> {
               children: [
                 CircleAvatar(
                   backgroundImage: NetworkImage(
-                    "https://www.pos7d.site/MAZO/sys/${sellerDet[0]['avatar']}",
+                    "https://www.pos7d.site/Globee/sys/${sellerDet[0]['avatar']}",
                   ),
                 ),
                 SizedBox(width: 15),

@@ -421,7 +421,7 @@ Widget buildCommentTile(
           backgroundImage:
               comment["urlAvatar"] != null
                   ? NetworkImage(
-                    "https://pos7d.site/MAZO/sys/${comment["urlAvatar"]}",
+                    "https://pos7d.site/Globee/sys/${comment["urlAvatar"]}",
                   )
                   : null,
           child: comment["urlAvatar"] == null ? Icon(Icons.person) : null,
@@ -494,7 +494,7 @@ Widget buildCommentTile(
 //                                                                     comment["urlAvatar"] !=
 //                                                                             null
 //                                                                         ? NetworkImage(
-//                                                                           "https://pos7d.site/MAZO/sys/${comment["urlAvatar"]}",
+//                                                                           "https://pos7d.site/Globee/sys/${comment["urlAvatar"]}",
 //                                                                         )
 //                                                                         : null,
 //                                                                 child:
@@ -626,7 +626,7 @@ Widget buildCommentTile(
 //                                                                     comment["urlAvatar"] !=
 //                                                                             null
 //                                                                         ? NetworkImage(
-//                                                                           "https://pos7d.site/MAZO/sys/${comment["urlAvatar"]}",
+//                                                                           "https://pos7d.site/Globee/sys/${comment["urlAvatar"]}",
 //                                                                         )
 //                                                                         : null,
 //                                                                 child:

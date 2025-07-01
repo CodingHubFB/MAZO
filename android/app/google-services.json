@@ -1,21 +1,21 @@
 {
   "project_info": {
-    "project_number": "326760304171",
-    "project_id": "mazo-4ea7b",
-    "storage_bucket": "mazo-4ea7b.firebasestorage.app"
+    "project_number": "570142296668",
+    "project_id": "mazo-trading",
+    "storage_bucket": "mazo-trading.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:326760304171:android:1a25e857a3909c2e7e646e",
+        "mobilesdk_app_id": "1:570142296668:android:469414ffaa8be810f17499",
         "android_client_info": {
-          "package_name": "com.example.mazo"
+          "package_name": "com.mazo.market"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyAWjCoRvUx108hE3jvYvzu13_pVrTgY-H8"
+          "current_key": "AIzaSyDGD8iynTbt2dkdPwvETgqGu38fRDBp8mE"
         }
       ],
       "services": {
@@ -26,7 +26,7 @@
     },
     {
       "client_info": {
-        "mobilesdk_app_id": "1:326760304171:android:ddff8988c613b35b7e646e",
+        "mobilesdk_app_id": "1:570142296668:android:68022774547cab91f17499",
         "android_client_info": {
           "package_name": "com.mazo.shorts"
         }
@@ -34,7 +34,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyAWjCoRvUx108hE3jvYvzu13_pVrTgY-H8"
+          "current_key": "AIzaSyDGD8iynTbt2dkdPwvETgqGu38fRDBp8mE"
         }
       ],
       "services": {
