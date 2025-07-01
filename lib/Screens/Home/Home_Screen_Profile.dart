@@ -1,11 +1,11 @@
 import 'dart:async';
 
-import 'package:mazo/BottomSheets/CommentsBottomSheet.dart';
-import 'package:mazo/BottomSheets/ItemMoreBottomSheet.dart';
-import 'package:mazo/BottomSheets/MediaPickerBottomSheet.dart';
-import 'package:mazo/Core/Utils.dart';
-import 'package:mazo/Screens/SearchScreen.dart';
-import 'package:mazo/provider/App_Provider.dart';
+import 'package:globee/BottomSheets/CommentsBottomSheet.dart';
+import 'package:globee/BottomSheets/ItemMoreBottomSheet.dart';
+import 'package:globee/BottomSheets/MediaPickerBottomSheet.dart';
+import 'package:globee/Core/Utils.dart';
+import 'package:globee/Screens/SearchScreen.dart';
+import 'package:globee/provider/App_Provider.dart';
 import 'package:flutter/material.dart';
 import 'package:better_player_plus/better_player_plus.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';

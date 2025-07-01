@@ -2,9 +2,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
-import 'package:mazo/Core/PushNotificationsServiceChats.dart';
-import 'package:mazo/Core/Utils.dart';
-import 'package:mazo/Widgets/Input_Widget.dart';
+import 'package:globee/Core/PushNotificationsServiceChats.dart';
+import 'package:globee/Core/Utils.dart';
+import 'package:globee/Widgets/Input_Widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timeago/timeago.dart' as timeago;
 

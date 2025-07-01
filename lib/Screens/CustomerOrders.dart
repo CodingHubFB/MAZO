@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
-import 'package:mazo/Core/PushNotificationsService.dart';
-import 'package:mazo/Core/Utils.dart';
-import 'package:mazo/Routes/App_Router.dart';
+import 'package:globee/Core/PushNotificationsService.dart';
+import 'package:globee/Core/Utils.dart';
+import 'package:globee/Routes/App_Router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class CustomersOrders extends StatefulWidget {

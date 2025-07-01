@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
-import 'package:mazo/Core/ApiKeys.dart';
+import 'package:globee/Core/ApiKeys.dart';
 
 abstract class PaymentManager {
   static Future<String> makePayment(int amount, String currency) async {

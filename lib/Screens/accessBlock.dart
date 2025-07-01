@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
-import 'package:mazo/Core/Utils.dart';
+import 'package:globee/Core/Utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AccessBlock extends StatefulWidget {

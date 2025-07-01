@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mazo/Core/PushNotificationsService.dart';
+import 'package:globee/Core/PushNotificationsService.dart';
 
 class TestScreen extends StatefulWidget {
   const TestScreen({super.key});

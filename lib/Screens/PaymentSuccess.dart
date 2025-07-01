@@ -3,11 +3,11 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
-import 'package:mazo/BottomSheets/ChatSellersBottomSheet.dart';
-import 'package:mazo/Core/Utils.dart';
-import 'package:mazo/Routes/App_Router.dart';
-import 'package:mazo/Screens/ChatScreen.dart';
-import 'package:mazo/Widgets/Button_Widget.dart';
+import 'package:globee/BottomSheets/ChatSellersBottomSheet.dart';
+import 'package:globee/Core/Utils.dart';
+import 'package:globee/Routes/App_Router.dart';
+import 'package:globee/Screens/ChatScreen.dart';
+import 'package:globee/Widgets/Button_Widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class PaymentSuccess extends StatefulWidget {
@@ -139,8 +139,6 @@ class _PaymentSuccessState extends State<PaymentSuccess> {
                               );
                             },
                           );
-
-                          
                         },
 
                         child: ButtonWidget(btnText: "${languages[159][lang]}"),

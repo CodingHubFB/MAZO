@@ -2,13 +2,13 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:mazo/BottomSheets/UserPickerBottomSheet.dart';
-import 'package:mazo/Core/PushNotificationsService.dart';
-import 'package:mazo/Core/Utils.dart';
-import 'package:mazo/Widgets/Back_Button.dart';
-import 'package:mazo/Widgets/Button_Widget.dart';
-import 'package:mazo/Widgets/Input_Widget.dart';
-import 'package:mazo/provider/App_Provider.dart';
+import 'package:globee/BottomSheets/UserPickerBottomSheet.dart';
+import 'package:globee/Core/PushNotificationsService.dart';
+import 'package:globee/Core/Utils.dart';
+import 'package:globee/Widgets/Back_Button.dart';
+import 'package:globee/Widgets/Button_Widget.dart';
+import 'package:globee/Widgets/Input_Widget.dart';
+import 'package:globee/provider/App_Provider.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
@@ -134,10 +134,11 @@ class _CreateUserState extends State<CreateUser> {
                                         "query",
                                         "INSERT INTO Users VALUES(NULL, '${nameController.text}', '${widget.phonenumber}', '$uid','$oid', 'uploads/Users/$uid.webp', '$fcmToken','${DateTime.now().toString().split(' ')[0]}', '0', '${DateTime.now()}') ",
                                       );
-                                      var requestEmp = await AppUtils.makeRequests(
-                                        "fetch",
-                                        "SELECT * FROM employees",
-                                      );
+                                      var requestEmp =
+                                          await AppUtils.makeRequests(
+                                            "fetch",
+                                            "SELECT * FROM employees",
+                                          );
                                       if (requestEmp[0] != null) {
                                         for (var reqx in requestEmp) {
                                           PushNotificationService.sendNotificationToUser(

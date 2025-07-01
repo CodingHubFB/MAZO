@@ -1,7 +1,7 @@
 import 'package:flutter_spinkit/flutter_spinkit.dart';
-import 'package:mazo/Core/Theme.dart';
-import 'package:mazo/Core/Utils.dart';
-import 'package:mazo/provider/App_Provider.dart';
+import 'package:globee/Core/Theme.dart';
+import 'package:globee/Core/Utils.dart';
+import 'package:globee/provider/App_Provider.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' as datol;
 import 'package:provider/provider.dart';

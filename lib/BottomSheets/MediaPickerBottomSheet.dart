@@ -1,8 +1,8 @@
 import 'package:flutter_spinkit/flutter_spinkit.dart';
-import 'package:mazo/Core/Theme.dart';
-import 'package:mazo/Core/Utils.dart';
-import 'package:mazo/Routes/App_Router.dart' as MyApp;
-import 'package:mazo/provider/App_Provider.dart';
+import 'package:globee/Core/Theme.dart';
+import 'package:globee/Core/Utils.dart';
+import 'package:globee/Routes/App_Router.dart' as MyApp;
+import 'package:globee/provider/App_Provider.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
@@ -78,16 +78,16 @@ class MediaPickerBottomSheet {
       backgroundColor: Colors.transparent,
       builder: (BuildContext context) {
         return FutureBuilder(
-          future: AppUtils.makeRequests(
-            "fetch",
-            "SELECT $lang FROM Languages",
-          ),
+          future: AppUtils.makeRequests("fetch", "SELECT $lang FROM Languages"),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return Container(
                 height: 150,
                 alignment: Alignment.center,
-                child: SpinKitDoubleBounce(color: AppTheme.primaryColor, size: 30.0),
+                child: SpinKitDoubleBounce(
+                  color: AppTheme.primaryColor,
+                  size: 30.0,
+                ),
               );
             }
 

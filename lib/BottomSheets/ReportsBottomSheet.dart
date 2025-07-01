@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:mazo/Core/PushNotificationsService.dart';
-import 'package:mazo/Core/Utils.dart';
-import 'package:mazo/provider/App_Provider.dart';
+import 'package:globee/Core/PushNotificationsService.dart';
+import 'package:globee/Core/Utils.dart';
+import 'package:globee/provider/App_Provider.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -63,7 +63,7 @@ class _reportsBottomSheetState extends State<reportsBottomSheet> {
                         title: Text(value),
                         onChanged: (val) async {
                           setState(() {
-                            selectedValue = val!; 
+                            selectedValue = val!;
                             print("Selected Report: $selectedValue");
                           });
                           SharedPreferences prefx =

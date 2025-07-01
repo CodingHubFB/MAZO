@@ -4,8 +4,8 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:go_router/go_router.dart';
-import 'package:mazo/Core/Theme.dart';
-import 'package:mazo/Core/Utils.dart';
+import 'package:globee/Core/Theme.dart';
+import 'package:globee/Core/Utils.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -122,7 +122,14 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return languages.isEmpty
-        ? const Scaffold(body: Center(child: SpinKitDoubleBounce(color: AppTheme.primaryColor, size: 30.0),))
+        ? const Scaffold(
+          body: Center(
+            child: SpinKitDoubleBounce(
+              color: AppTheme.primaryColor,
+              size: 30.0,
+            ),
+          ),
+        )
         : Scaffold(
           body: Center(
             child: Column(

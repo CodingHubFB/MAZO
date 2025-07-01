@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:mazo/Core/Utils.dart';
-import 'package:mazo/Widgets/Button_Widget.dart';
+import 'package:globee/Core/Utils.dart';
+import 'package:globee/Widgets/Button_Widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 

@@ -1,10 +1,10 @@
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:mazo/Core/PushNotificationsService.dart';
-import 'package:mazo/Core/Theme.dart';
-import 'package:mazo/Core/Utils.dart';
-import 'package:mazo/Widgets/Input_Widget.dart';
-import 'package:mazo/provider/App_Provider.dart';
+import 'package:globee/Core/PushNotificationsService.dart';
+import 'package:globee/Core/Theme.dart';
+import 'package:globee/Core/Utils.dart';
+import 'package:globee/Widgets/Input_Widget.dart';
+import 'package:globee/provider/App_Provider.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';

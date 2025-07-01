@@ -2,9 +2,9 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
-import 'package:mazo/Core/Theme.dart';
-import 'package:mazo/Core/Utils.dart';
-import 'package:mazo/Widgets/Button_Widget.dart';
+import 'package:globee/Core/Theme.dart';
+import 'package:globee/Core/Utils.dart';
+import 'package:globee/Widgets/Button_Widget.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';

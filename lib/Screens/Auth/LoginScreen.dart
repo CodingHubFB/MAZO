@@ -1,8 +1,8 @@
 import 'dart:math';
-import 'package:mazo/Core/Utils.dart';
-import 'package:mazo/Widgets/Back_Button.dart';
-import 'package:mazo/Widgets/Button_Widget.dart';
-import 'package:mazo/Widgets/Input_Widget.dart';
+import 'package:globee/Core/Utils.dart';
+import 'package:globee/Widgets/Back_Button.dart';
+import 'package:globee/Widgets/Button_Widget.dart';
+import 'package:globee/Widgets/Input_Widget.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';

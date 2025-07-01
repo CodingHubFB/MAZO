@@ -3,17 +3,17 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:go_router/go_router.dart';
-import 'package:mazo/Core/ApiKeys.dart';
-import 'package:mazo/Core/Utils.dart';
-import 'package:mazo/Screens/ForceUpdateScreen.dart';
-import 'package:mazo/firebase_options.dart';
-import 'package:mazo/provider/App_Provider.dart';
+import 'package:globee/Core/ApiKeys.dart';
+import 'package:globee/Core/Utils.dart';
+import 'package:globee/Screens/ForceUpdateScreen.dart';
+import 'package:globee/firebase_options.dart';
+import 'package:globee/provider/App_Provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:mazo/Core/Theme.dart';
-import 'package:mazo/Routes/App_Router.dart';
+import 'package:globee/Core/Theme.dart';
+import 'package:globee/Routes/App_Router.dart';
 import 'package:flutter/services.dart';
-import 'package:mazo/provider/local_provider.dart';
+import 'package:globee/provider/local_provider.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -29,7 +29,10 @@ Future<void> main() async {
     DeviceOrientation.portraitDown,
     DeviceOrientation.portraitUp,
   ]);
+
   await dotenv.load(fileName: ".env");
+  print('✅ .env loaded');
+
 
   // iOS settings
   const DarwinInitializationSettings initializationSettingsDarwin =

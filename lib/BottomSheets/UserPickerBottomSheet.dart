@@ -1,5 +1,5 @@
-import 'package:mazo/Core/Utils.dart';
-import 'package:mazo/provider/App_Provider.dart';
+import 'package:globee/Core/Utils.dart';
+import 'package:globee/provider/App_Provider.dart';
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:image_picker/image_picker.dart';

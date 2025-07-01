@@ -1,11 +1,11 @@
 import 'dart:io';
 
 import 'package:flutter_spinkit/flutter_spinkit.dart';
-import 'package:mazo/BottomSheets/MediaPickerBottomSheet.dart';
-import 'package:mazo/Core/Theme.dart';
-import 'package:mazo/Core/Utils.dart';
-import 'package:mazo/Widgets/Input_Widget.dart';
-import 'package:mazo/provider/App_Provider.dart';
+import 'package:globee/BottomSheets/MediaPickerBottomSheet.dart';
+import 'package:globee/Core/Theme.dart';
+import 'package:globee/Core/Utils.dart';
+import 'package:globee/Widgets/Input_Widget.dart';
+import 'package:globee/provider/App_Provider.dart';
 import 'package:better_player_plus/better_player_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';

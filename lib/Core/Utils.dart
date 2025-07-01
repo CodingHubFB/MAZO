@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:mazo/Core/PushNotificationsService.dart';
+import 'package:globee/Core/PushNotificationsService.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AppUtils {
@@ -94,7 +94,7 @@ class AppUtils {
           "fetch",
           "SELECT * FROM Followers WHERE buyer_id = '${prefx.getString("UID")}' ",
         );
-        
+
         for (var req in request) {
           print(req['user_token']);
           PushNotificationService.sendNotificationToUser(
@@ -103,7 +103,6 @@ class AppUtils {
             "Explore the $itemTxt – only on Globee.",
           );
         }
-        
       }
     } else {
       print("Image Not Uploaded");

@@ -2,9 +2,9 @@
 
 // import 'package:flutter/material.dart';
 // import 'package:go_router/go_router.dart';
-// import 'package:mazo/Core/PushNotificationsServiceOrders.dart';
-// import 'package:mazo/Core/Utils.dart';
-// import 'package:mazo/provider/App_Provider.dart';
+// import 'package:globee/Core/PushNotificationsServiceOrders.dart';
+// import 'package:globee/Core/Utils.dart';
+// import 'package:globee/provider/App_Provider.dart';
 // import 'package:provider/provider.dart';
 // import 'package:shared_preferences/shared_preferences.dart';
 // import 'package:url_launcher/url_launcher.dart';
@@ -80,7 +80,7 @@
 //             ..setNavigationDelegate(
 //               NavigationDelegate(
 //                 onUrlChange: (change) async {
-                  
+
 //                 },
 //               ),
 //             )
