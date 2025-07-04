@@ -13,6 +13,15 @@ android {
     compileSdk = 35
     ndkVersion = "27.0.12077973"
 
+    signingConfigs {
+        create("release") {
+            keyAlias = "globee-keystore"
+            keyPassword = "A122%133z."
+            storeFile = file("globee.keystore")
+            storePassword = "A122%133z."
+        }
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -34,13 +43,14 @@ android {
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
+    
 
     buildTypes {
-        release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
-        }
+            getByName("release") {
+                signingConfig = signingConfigs.getByName("release")
+                isMinifyEnabled = false  // ← ده لازم يكون موجود
+                isShrinkResources = false // ← ده لازم تعمله false أو تشيله
+            }
     }
 }
 

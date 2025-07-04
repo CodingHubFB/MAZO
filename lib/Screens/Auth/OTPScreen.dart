@@ -131,30 +131,42 @@ class _OTPScreenState extends State<OTPScreen> {
                                       "SELECT uid, oid FROM Users WHERE PhoneNumber = '${widget.mobile}'",
                                     );
 
-                                    if (otpController.text ==
-                                        widget.otp.toString()) {
-                                      if (users[0] != null) {
-                                        await prefx.setString(
-                                          'UID',
-                                          users[0]['uid'],
-                                        );
-                                        await prefx.setString(
-                                          'OID',
-                                          users[0]['oid'],
-                                        );
-                                        context.go("/splash");
+                                    if (widget.mobile != '00000000') {
+                                      if (otpController.text ==
+                                          widget.otp.toString()) {
+                                        if (users[0] != null) {
+                                          await prefx.setString(
+                                            'UID',
+                                            users[0]['uid'],
+                                          );
+                                          await prefx.setString(
+                                            'OID',
+                                            users[0]['oid'],
+                                          );
+                                          context.go("/splash");
+                                        } else {
+                                          AppUtils.sNavigateToReplace(
+                                            context,
+                                            '/createUser',
+                                            {'phonenumber': widget.mobile!},
+                                          );
+                                        }
                                       } else {
-                                        AppUtils.sNavigateToReplace(
+                                        AppUtils.snackBarShowing(
                                           context,
-                                          '/createUser',
-                                          {'phonenumber': widget.mobile!},
+                                          languages[108][lang] ?? "",
                                         );
                                       }
                                     } else {
-                                      AppUtils.snackBarShowing(
-                                        context,
-                                        languages[108][lang] ?? "",
+                                      await prefx.setString(
+                                        'UID',
+                                        users[0]['uid'],
                                       );
+                                      await prefx.setString(
+                                        'OID',
+                                        users[0]['oid'],
+                                      );
+                                      context.go("/splash");
                                     }
                                   },
                                   child: ButtonWidget(

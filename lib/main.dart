@@ -1,7 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:go_router/go_router.dart';
 import 'package:globee/Core/ApiKeys.dart';
 import 'package:globee/Core/Utils.dart';
@@ -54,8 +53,8 @@ Future<void> main() async {
 
   await flutterLocalNotificationsPlugin.initialize(initializationSettings);
 
-  Stripe.publishableKey = ApiKeys.publishableKey;
-  await Stripe.instance.applySettings();
+  // Stripe.publishableKey = ApiKeys.publishableKey;
+  // await Stripe.instance.applySettings();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(
     ChangeNotifierProvider(
